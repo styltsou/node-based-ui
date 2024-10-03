@@ -1,0 +1,16 @@
+.svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+
+	.path {
+		fill: none;
+		stroke: #444;
+		stroke-width: 2px;
+
+		&:hover {
+			stroke: var(--color-primary);
+			stroke-width: 3px;
+		}
+	}
+}

@@ -10,13 +10,12 @@
 	transition: border 0.1s ease-in-out;
 	// user-select: none;
 
-	&.hovered,
-	&.focused,
+	&:hover,
 	&:focus {
 		outline: none;
 		border-color: var(--color-primary);
 
-		& .anchor {
+		& .handle {
 			border-color: var(--color-primary);
 		}
 	}
@@ -27,11 +26,12 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		user-select: none;
 	}
 
-	.anchor {
-		width: 0.5rem;
-		height: 0.5rem;
+	.handle {
+		width: 0.6rem;
+		height: 0.6rem;
 		background-color: inherit;
 		border: 1px solid #444;
 		border-radius: 100%;
@@ -40,6 +40,10 @@
 		left: 0;
 		transform: translate(-50%, -50%);
 		transition: border 0.1s ease-in-out;
+
+		&:hover {
+			background-color: var(--color-primary);
+		}
 
 		&.right {
 			left: 100%;

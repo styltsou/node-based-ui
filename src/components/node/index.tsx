@@ -13,32 +13,24 @@ export default function Node({
   nodeIdx: number;
 }) {
   const { x: mouseX, y: mouseY } = useMouseInfo();
+  const isCanvasInteractive = useBoardStore(s => s.isInteractive);
+  const updateNodePosition = useBoardStore(s => s.updateNodePosition);
 
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
+  // const [isFocused, setIsFocused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
 
-  const updateNodePosition = useBoardStore(s => s.updateNodePosition);
+  // const handleFocus = () => {
+  //   if (!isFocused) setIsFocused(true);
+  // };
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
+  // const handleBlur = () => {
+  //   setIsFocused(false);
+  // };
 
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
-
-  const handleFocus = () => {
-    if (!isFocused) setIsFocused(true);
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-  };
-
-  const handleMouseDown = () => {
+  const handleDragStart = () => {
+    if (!isCanvasInteractive) return;
     setIsDragging(true);
 
     setMouseOffset({
@@ -47,7 +39,13 @@ export default function Node({
     });
   };
 
-  const handleMouseUp = () => {
+  const handleDrag = () => {
+    if (!isCanvasInteractive) return;
+  };
+
+  const handleDragEnd = () => {
+    if (!isCanvasInteractive) return;
+
     updateNodePosition(node.id, {
       x: mouseX - mouseOffset.x,
       y: mouseY - mouseOffset.y,
@@ -57,33 +55,31 @@ export default function Node({
     setMouseOffset({ x: 0, y: 0 });
   };
 
+  const handleContextMenuClick = (e: React.SyntheticEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const nodeTranslate = isDragging
+    ? `translate(${mouseX - mouseOffset.x}px, ${mouseY - mouseOffset.y}px)`
+    : `translate(${node.position.x}px, ${node.position.y}px)`;
+
   return (
     <div
-      className={cn(
-        styles.node,
-        isHovered && styles.hovered,
-        isFocused && styles.focused
-      )}
-      style={{
-        transform: isDragging
-          ? `translate(${mouseX - mouseOffset.x}px, ${
-              mouseY - mouseOffset.y
-            }px)`
-          : `translate(${node.position.x}px, ${node.position.y}px)`,
-      }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
+      className={styles.node}
+      style={{ transform: nodeTranslate }}
+      // onFocus={handleFocus}
+      // onBlur={handleBlur}
+      onMouseDown={handleDragStart}
+      onMouseMove={handleDrag}
+      onMouseUp={handleDragEnd}
       tabIndex={
         nodeIdx + 100
-      } /* add 100 to avoid conflict with other  (non-node)e lements */
+      } /* add 100 to avoid conflict with other  (non-node) lements */
+      onContextMenu={handleContextMenuClick}
     >
-      <div className={styles.anchor}></div>
+      <div className={styles.handle}></div>
       <div className={styles.content}>Test Node</div>
-      <div className={cn(styles.anchor, styles.right)}></div>
+      <div className={cn(styles.handle, styles.right)}></div>
     </div>
   );
 }

@@ -1,49 +1,75 @@
 import { create } from 'zustand';
-import type { Node, Edge } from '../types';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 
-interface BoardState {
-  canvasPosition: {
+import type { Node, Edge } from '../types';
+import { MIN_ZOOM, MAX_ZOOM } from '../constants';
+
+interface CanvasState {
+  position: {
     x: number;
     y: number;
   };
-  canvasZoom: number;
+  zoom: number;
+  isInteractive: boolean;
   nodes: Node[];
   edges: Edge[];
 }
 
-interface BoardActions {
-  updateCanvasPosition: (position: BoardState['canvasPosition']) => void;
-  updateCanvasZoom: (zoom: number) => void;
+interface CanvasActions {
+  updatePosition: (position: CanvasState['position']) => void;
+  updateZoom: (zoom: number) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  toggleInteractivity: () => void;
   resetPanning: () => void;
   resetZoom: () => void;
   addNode: (node: Node) => void;
   addEdge: (edge: Edge) => void;
   updateNodePosition: (id: string, position: Node['position']) => void;
+  deleteNode: (id: string) => void;
 }
 
-const useBoardStore = create<BoardState & BoardActions>()(
+const useBoardStore = create<CanvasState & CanvasActions>()(
   persist(
-    set => ({
-      canvasPosition: { x: 0, y: 0 },
-      canvasZoom: 1,
+    (set, get) => ({
+      position: { x: 0, y: 0 },
+      zoom: 1,
+      isInteractive: false,
       nodes: [],
       edges: [],
-      updateCanvasPosition: position => set({ canvasPosition: position }),
-      updateCanvasZoom: zoom => {
+
+      updatePosition: position => set({ position: position }),
+
+      updateZoom: zoom => {
         console.log('call update canvas zoom');
-        set({ canvasZoom: zoom });
+        console.log('new zoom value', zoom);
+        set({ zoom: zoom });
       },
-      resetPanning: () => set({ canvasPosition: { x: 0, y: 0 } }),
-      resetZoom: () => set({ canvasZoom: 1 }),
+      zoomIn: () => {
+        if (get().zoom <= MAX_ZOOM) set(state => ({ zoom: state.zoom + 0.1 }));
+      },
+      zoomOut: () => {
+        if (get().zoom >= MIN_ZOOM) set(state => ({ zoom: state.zoom - 0.1 }));
+      },
+
+      toggleInteractivity: () =>
+        set(state => ({ isInteractive: !state.isInteractive })),
+
+      resetPanning: () => set({ position: { x: 0, y: 0 } }),
+      resetZoom: () => set({ zoom: 1 }),
+
       addNode: node => set(state => ({ nodes: [...state.nodes, node] })),
       addEdge: edge => set(state => ({ edges: [...state.edges, edge] })),
+
       updateNodePosition: (id, position) =>
         set(state => ({
           nodes: state.nodes.map(node =>
             node.id === id ? { ...node, position } : node
           ),
         })),
+
+      deleteNode: id =>
+        set(state => ({ nodes: state.nodes.filter(node => node.id !== id) })),
     }),
     {
       name: 'global-store',
