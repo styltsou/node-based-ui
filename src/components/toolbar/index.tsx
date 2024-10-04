@@ -1,10 +1,7 @@
+import { v4 as uuidv4 } from 'uuid';
 import styles from './styles.module.scss';
 import useBoardStore from '../../store';
 import type { Node } from '../../types';
-
-function getRandomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 export default function Toolbar() {
   const addNodeState = useBoardStore(s => s.addNode);
@@ -19,9 +16,10 @@ export default function Toolbar() {
   const addNode = () => {
     console.log('add node clicked');
     const newNode: Node = {
-      id: `${getRandomInt(0, 2000)}`,
+      id: uuidv4(),
       type: 'simple',
       position: { x: 500, y: 600 },
+      size: { width: 0, height: 0 },
     };
 
     addNodeState(newNode);

@@ -31,8 +31,6 @@ export default function InfiniteCanvas() {
     y: 0,
   });
 
-  // const [zoom, setZoom] = useState(1);
-
   const isPanning = useMemo<boolean>(
     () => (isGrabCursor && isPointerDown ? true : false),
     [isGrabCursor, isPointerDown]
@@ -48,6 +46,12 @@ export default function InfiniteCanvas() {
 
   const handlePointerUp = () => {
     setIsPointerDown(false);
+  };
+
+  const handleCanvasContextMenuClick = (
+    e: React.SyntheticEvent<HTMLDivElement>
+  ) => {
+    e.preventDefault();
   };
 
   useKeybindings([
@@ -114,6 +118,7 @@ export default function InfiniteCanvas() {
       )}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
+      onContextMenu={handleCanvasContextMenuClick}
     >
       <div
         id="canvas"
@@ -124,8 +129,8 @@ export default function InfiniteCanvas() {
         )}
         style={{ transform: canvasPanningTranslate }}
       >
-        {nodes.map((node, idx) => (
-          <Node key={node.id} node={node} nodeIdx={idx} />
+        {nodes.map(node => (
+          <Node key={node.id} node={node} />
         ))}
         {edges.map(edge => (
           <Edge edge={edge} />

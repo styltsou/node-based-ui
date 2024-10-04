@@ -1,0 +1,14 @@
+.wrapper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	pointer-events: none;
+
+	.line {
+		stroke: var(--color-primary);
+		stroke-width: 2px;
+		stroke-dasharray: 6px, 6px;
+	}
+}

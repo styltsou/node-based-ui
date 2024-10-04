@@ -2,7 +2,12 @@ import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 
 import type { Node, Edge } from '../types';
-import { MIN_ZOOM, MAX_ZOOM } from '../constants';
+import {
+  MIN_ZOOM,
+  MAX_ZOOM,
+  MIN_NODE_HEIGHT,
+  MIN_NODE_WIDTH,
+} from '../constants';
 
 interface CanvasState {
   position: {
@@ -17,16 +22,17 @@ interface CanvasState {
 
 interface CanvasActions {
   updatePosition: (position: CanvasState['position']) => void;
+  resetPanning: () => void;
   updateZoom: (zoom: number) => void;
   zoomIn: () => void;
   zoomOut: () => void;
-  toggleInteractivity: () => void;
-  resetPanning: () => void;
   resetZoom: () => void;
+  toggleInteractivity: () => void;
   addNode: (node: Node) => void;
-  addEdge: (edge: Edge) => void;
   updateNodePosition: (id: string, position: Node['position']) => void;
+  updateNodeSize: (id: string, size: Node['size']) => void;
   deleteNode: (id: string) => void;
+  addEdge: (edge: Edge) => void;
 }
 
 const useBoardStore = create<CanvasState & CanvasActions>()(
@@ -59,17 +65,30 @@ const useBoardStore = create<CanvasState & CanvasActions>()(
       resetZoom: () => set({ zoom: 1 }),
 
       addNode: node => set(state => ({ nodes: [...state.nodes, node] })),
-      addEdge: edge => set(state => ({ edges: [...state.edges, edge] })),
-
       updateNodePosition: (id, position) =>
         set(state => ({
           nodes: state.nodes.map(node =>
             node.id === id ? { ...node, position } : node
           ),
         })),
-
+      updateNodeSize: (id, size) =>
+        set(state => ({
+          nodes: state.nodes.map(node =>
+            node.id === id
+              ? {
+                  ...node,
+                  size: {
+                    width: Math.max(size.width, MIN_NODE_WIDTH),
+                    height: Math.max(size.height, MIN_NODE_HEIGHT),
+                  },
+                }
+              : node
+          ),
+        })),
       deleteNode: id =>
         set(state => ({ nodes: state.nodes.filter(node => node.id !== id) })),
+
+      addEdge: edge => set(state => ({ edges: [...state.edges, edge] })),
     }),
     {
       name: 'global-store',

@@ -4,11 +4,10 @@
 	left: 0;
 	width: 12rem;
 	height: 7rem;
-	border: 1px solid #444;
+	border: 1px solid var(--color-border);
 	border-radius: 0.5rem;
-	background-color: #2d2d2d;
+	background-color: var(--color-foreground);
 	transition: border 0.1s ease-in-out;
-	// user-select: none;
 
 	&:hover,
 	&:focus {
@@ -33,7 +32,7 @@
 		width: 0.6rem;
 		height: 0.6rem;
 		background-color: inherit;
-		border: 1px solid #444;
+		border: 1px solid var(--color-border);
 		border-radius: 100%;
 		position: absolute;
 		top: 50%;
