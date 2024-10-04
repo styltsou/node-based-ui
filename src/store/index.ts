@@ -16,6 +16,8 @@ interface CanvasState {
   };
   zoom: number;
   isInteractive: boolean;
+  areVerticalGuidesActive: boolean;
+  areHorizontalGuidesActive: boolean;
   nodes: Node[];
   edges: Edge[];
 }
@@ -28,6 +30,8 @@ interface CanvasActions {
   zoomOut: () => void;
   resetZoom: () => void;
   toggleInteractivity: () => void;
+  toggleVerticalGuides: () => void;
+  toggleHorizontalGuides: () => void;
   addNode: (node: Node) => void;
   updateNodePosition: (id: string, position: Node['position']) => void;
   updateNodeSize: (id: string, size: Node['size']) => void;
@@ -41,6 +45,8 @@ const useBoardStore = create<CanvasState & CanvasActions>()(
       position: { x: 0, y: 0 },
       zoom: 1,
       isInteractive: false,
+      areVerticalGuidesActive: true,
+      areHorizontalGuidesActive: true,
       nodes: [],
       edges: [],
 
@@ -60,6 +66,15 @@ const useBoardStore = create<CanvasState & CanvasActions>()(
 
       toggleInteractivity: () =>
         set(state => ({ isInteractive: !state.isInteractive })),
+
+      toggleVerticalGuides: () =>
+        set(state => ({
+          areVerticalGuidesActive: !state.areVerticalGuidesActive,
+        })),
+      toggleHorizontalGuides: () =>
+        set(state => ({
+          areHorizontalGuidesActive: !state.areHorizontalGuidesActive,
+        })),
 
       resetPanning: () => set({ position: { x: 0, y: 0 } }),
       resetZoom: () => set({ zoom: 1 }),

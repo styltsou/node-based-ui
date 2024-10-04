@@ -4,6 +4,7 @@ import styles from './styles.module.scss';
 
 import Node from '../node';
 import Edge from '../edge';
+import CanvasContextMenu from '../canvas-context-menu';
 
 import useBoardStore from '../../store';
 import { useKeybindings } from '../../hooks/use-keybindings';
@@ -48,11 +49,11 @@ export default function InfiniteCanvas() {
     setIsPointerDown(false);
   };
 
-  const handleCanvasContextMenuClick = (
-    e: React.SyntheticEvent<HTMLDivElement>
-  ) => {
-    e.preventDefault();
-  };
+  // const handleCanvasContextMenuClick = (
+  //   e: React.SyntheticEvent<HTMLDivElement>
+  // ) => {
+  //   e.preventDefault();
+  // };
 
   useKeybindings([
     {
@@ -110,32 +111,34 @@ export default function InfiniteCanvas() {
   }, [isPanning]);
 
   return (
-    <div
-      className={cn(
-        styles.canvasWrapper,
-        isGrabCursor && styles.grab,
-        isPanning && styles.dragging
-      )}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
-      onContextMenu={handleCanvasContextMenuClick}
-    >
+    <CanvasContextMenu>
       <div
-        id="canvas"
         className={cn(
-          styles.canvas,
+          styles.canvasWrapper,
           isGrabCursor && styles.grab,
-          isPanning && styles.panning
+          isPanning && styles.dragging
         )}
-        style={{ transform: canvasPanningTranslate }}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        // onContextMenu={handleCanvasContextMenuClick}
       >
-        {nodes.map(node => (
-          <Node key={node.id} node={node} />
-        ))}
-        {edges.map(edge => (
-          <Edge edge={edge} />
-        ))}
+        <div
+          id="canvas"
+          className={cn(
+            styles.canvas,
+            isGrabCursor && styles.grab,
+            isPanning && styles.panning
+          )}
+          style={{ transform: canvasPanningTranslate }}
+        >
+          {nodes.map(node => (
+            <Node key={node.id} node={node} />
+          ))}
+          {edges.map(edge => (
+            <Edge edge={edge} />
+          ))}
+        </div>
       </div>
-    </div>
+    </CanvasContextMenu>
   );
 }
