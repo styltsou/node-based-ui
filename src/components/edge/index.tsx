@@ -45,6 +45,11 @@ type ConnectionLineProps = {
 export function ConnectionLine({ start, end, type }: ConnectionLineProps) {
   const path = getStraightEdgePath(start, end);
 
+  // Not yet implemented
+  if (type !== EdgeType.Straight) {
+    return null;
+  }
+
   return (
     <svg className={styles.svg}>
       <path className={cn(styles.path, styles.placeholder)} d={path} />
