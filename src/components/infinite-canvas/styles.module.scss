@@ -18,17 +18,7 @@
 	.canvas {
 		width: 100%;
 		height: 100%;
-		border: 1px dashed var(--color-primary);
+		// border: 1px dashed var(--color-primary); // Uncomment this to see where exactly the canvas is
 		z-index: var(--z-index-canvas);
-
-		.edgesContainer {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			pointer-events: none;
-			// z-index: 100;
-		}
 	}
 }
