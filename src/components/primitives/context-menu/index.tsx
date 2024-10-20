@@ -1,7 +1,6 @@
 import React, { createContext, useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnClickOutside } from 'usehooks-ts';
-// import { useScrollLock } from "@/app/_hooks/useScrollLock";
 import cn from '../../../utils/cn';
 
 import styles from './styles.module.scss';
@@ -22,10 +21,12 @@ const animationVariants = {
 
 export const ContextMenuContext = createContext<{
   isOpen: boolean;
+  position: { x: number; y: number };
   open: (e: React.MouseEvent<HTMLElement>) => void;
   close: () => void;
 }>({
   isOpen: false,
+  position: { x: 0, y: 0 },
   open: () => {},
   close: () => {},
 });
@@ -36,7 +37,7 @@ export const ContextMenu: React.FC<{
   content: React.ReactElement;
   children: React.ReactNode;
 }> = ({ onOpen, onClose, content, children }) => {
-  const menuRef = useRef(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   // Keep a copy of them menu always mounted so I can caclulate its size
   // const menuCopyRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +45,8 @@ export const ContextMenu: React.FC<{
   //   autoLock: false,
   // });
 
-  const [isActive, setIsActive] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  // const isOpenRef = useRef<boolean>(false);
 
   const [menuSize] = useState<{ width: number; height: number }>({
     width: 0,
@@ -52,24 +54,20 @@ export const ContextMenu: React.FC<{
   });
 
   // Menu position
-  const [x, setX] = useState<number>(0);
-  const [y, setY] = useState<number>(0);
+  const [position, setPosition] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
 
   // Viewport quadrant where the menu was opened
   const [viewportQuadrant, setViewportQuadrant] =
     useState<ViewportQuadrant>('top-left');
 
+  //TODO: Wrap function in a callback
   const openContextMenu = (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
-    // if (isActive) {
-    //   setIsActive(false);
-    //   return;
-    // }
-
-    console.log('opened');
-    // lock();
-    // Add this to trigger presence animations every time
-    setIsActive(false);
+    if (isOpen) return;
+    console.log('context menu opened');
 
     // Calculate the viewport quadrant that way in order to specify
     // the appropriate transform orgin to the menu
@@ -85,25 +83,33 @@ export const ContextMenu: React.FC<{
       y: verticalOrientation === 'top' ? 0 : -menuSize.height,
     };
 
-    setX(e.clientX + menuOffset.x);
-    setY(e.clientY + menuOffset.y);
+    setPosition({
+      x: e.clientX + menuOffset.x,
+      y: e.clientY + menuOffset.y,
+    });
 
-    if (typeof onOpen === 'function') onOpen();
-    setIsActive(true);
+    console.log('set state');
+    console.log('position', position);
+
+    onOpen?.();
+    setIsOpen(true);
   };
 
+  // TODO: Wrap function in a callback
   const closeContextMenu = () => {
+    if (!isOpen) return;
     console.log('should close');
-    if (typeof onClose === 'function') onClose();
-    setIsActive(false);
-    // unlock();
+
+    onClose?.();
+    setIsOpen(false);
   };
 
   // Close menu on Esc
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (isActive) closeContextMenu();
+        console.log('trigger close');
+        closeContextMenu();
       }
     };
 
@@ -120,7 +126,8 @@ export const ContextMenu: React.FC<{
   return (
     <ContextMenuContext.Provider
       value={{
-        isOpen: isActive,
+        isOpen,
+        position,
         open: openContextMenu,
         close: closeContextMenu,
       }}
@@ -128,14 +135,14 @@ export const ContextMenu: React.FC<{
       <div onContextMenu={openContextMenu}>
         {children}
         <AnimatePresence mode="wait">
-          {isActive && (
+          {isOpen && (
             <motion.div
               ref={menuRef}
               className={cn(styles.menu, styles[viewportQuadrant])}
               initial={animationVariants.initial}
               animate={animationVariants.enter}
               exit={animationVariants.exit}
-              style={{ x, y }}
+              style={position}
               onContextMenu={e => e.preventDefault()}
             >
               {content}

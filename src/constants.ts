@@ -90,4 +90,6 @@ export const MAX_ZOOM = 2;
 export const MIN_NODE_WIDTH = 100;
 export const MIN_NODE_HEIGHT = 50;
 
+export const PORT_SIZE = 0.75;
+
 export const NODE_ALIGNMENT_THRESHOLD = 5;

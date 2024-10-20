@@ -6,6 +6,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	pointer-events: none;
 
 	.toolbar {
 		display: flex;
@@ -19,5 +20,6 @@
 		width: 45rem;
 		height: 1rem;
 		background-color: var(--color-foreground);
+		pointer-events: auto;
 	}
 }

@@ -18,6 +18,22 @@ export default function ViewControls() {
   const zoomOut = useBoardStore(s => s.zoomOut);
   const isInteractive = useBoardStore(s => s.isInteractive);
   const toggleInteractivity = useBoardStore(s => s.toggleInteractivity);
+  const saveLocalState = useBoardStore(s => s.saveLocalState);
+
+  const handleToggleInteractivity = () => {
+    toggleInteractivity();
+    saveLocalState();
+  };
+
+  const handleZoomIn = () => {
+    zoomIn();
+    saveLocalState();
+  };
+
+  const handleZoomOut = () => {
+    zoomOut();
+    saveLocalState();
+  };
 
   const handleFitInView = () => {
     if (nodes.length === 0) return;
@@ -72,20 +88,21 @@ export default function ViewControls() {
 
     updateZoom(newZoom);
     updatePanning({ x: newX, y: newY });
+    saveLocalState();
   };
 
   return (
     <div className={styles.wrapper}>
-      <button onClick={zoomIn} disabled={zoom >= MAX_ZOOM}>
+      <button onClick={handleZoomIn} disabled={zoom >= MAX_ZOOM}>
         <IconPlus size={18} stroke={1.5} />
       </button>
-      <button onClick={zoomOut} disabled={zoom <= MIN_ZOOM}>
+      <button onClick={handleZoomOut} disabled={zoom <= MIN_ZOOM}>
         <IconMinus size={18} stroke={1.5} />
       </button>
       <button className={styles.iconButton} onClick={handleFitInView}>
         <IconMaximize size={18} stroke={1.5} />
       </button>
-      <button onClick={toggleInteractivity}>
+      <button onClick={handleToggleInteractivity}>
         {isInteractive ? (
           <IconLockOpen size={18} stroke={1.5} />
         ) : (

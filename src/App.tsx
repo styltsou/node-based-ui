@@ -6,11 +6,11 @@ import ViewControls from './components/view-controls';
 function App() {
   return (
     <MouseInfoProvider>
-      <main>
-        <InfiniteCanvas />
-        <Toolbar />
-        <ViewControls />
-      </main>
+      {/* <main> */}
+      <InfiniteCanvas />
+      <Toolbar />
+      <ViewControls />
+      {/* </main> */}
     </MouseInfoProvider>
   );
 }

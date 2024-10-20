@@ -8,6 +8,11 @@
 	border-radius: 0.5rem;
 	background-color: var(--color-foreground);
 	transition: border 0.1s ease-in-out;
+	z-index: var(--z-index-node);
+
+	&.dragging {
+		z-index: var(--z-index-node-dragging);
+	}
 
 	&:hover,
 	&:focus {
@@ -19,7 +24,16 @@
 		}
 	}
 
-	.content {
+	.lockIndicator {
+		position: absolute;
+		top: 0;
+		right: 0;
+		transform: translate(85%, -85%);
+		color: var(--color-primary);
+		pointer-events: none;
+	}
+
+	.contentWrapper {
 		width: 100%;
 		height: 100%;
 		display: flex;
@@ -28,20 +42,30 @@
 		user-select: none;
 	}
 
-	.handle {
-		width: 0.6rem;
-		height: 0.6rem;
-		background-color: inherit;
-		border: 1px solid var(--color-border);
-		border-radius: 100%;
+	.portWrapper {
+		padding: 15px;
+		background-color: transparent;
 		position: absolute;
 		top: 50%;
 		left: 0;
 		transform: translate(-50%, -50%);
 		transition: border 0.1s ease-in-out;
+		// border: 1px dashed red; // ! Only for debugging purposes
 
-		&:hover {
-			background-color: var(--color-primary);
+		.port {
+			background-color: var(--color-foreground);
+			border: 1px solid var(--color-border);
+			border-radius: 100%;
+			transition: border 0.1s ease-in-out;
+
+			&:hover {
+				background-color: var(--color-primary);
+			}
+
+			&:active {
+				background-color: var(--color-primary);
+				border-color: var(--color-primary);
+			}
 		}
 
 		&.right {

@@ -1,6 +1,6 @@
 export enum EdgeType {
   Straight = 'straight',
-  Step = 'Step',
+  Step = 'step',
   SmoothStep = 'smoothstep',
   Bezier = 'bezier',
 }

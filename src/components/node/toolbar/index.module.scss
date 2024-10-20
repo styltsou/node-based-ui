@@ -1,0 +1,36 @@
+.wrapper {
+	width: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transform: translateY(-100%);
+	padding: 0.7rem 0;
+
+	.toolbar {
+		width: min-content;
+		display: flex;
+		background-color: var(--color-node-toolbar);
+		border-radius: 0.3rem;
+
+		&>button {
+			padding: 0.5rem 0.8rem;
+			color: white;
+			transition: 0.1s ease-in-out;
+
+			&:hover {
+				background-color: var(--color-primary);
+			}
+
+			&:first-child {
+				border-radius: 0.3rem 0rem 0rem 0.3rem;
+			}
+
+			&:last-child {
+				border-radius: 0rem 0.3rem 0.3rem 0rem;
+			}
+		}
+	}
+}

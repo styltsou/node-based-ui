@@ -1,16 +1,47 @@
-.svg {
-	position: absolute;
-	top: 0;
-	left: 0;
+ @keyframes dash {
+ 	to {
+ 		stroke-dashoffset: -80;
+ 	}
+ }
 
-	.path {
-		fill: none;
-		stroke: #444;
-		stroke-width: 2px;
 
-		&:hover {
-			stroke: var(--color-primary);
-			stroke-width: 3px;
-		}
-	}
-}
+ .svg {
+ 	position: absolute;
+ 	min-width: 100%;
+ 	min-height: 100%;
+ 	// top: 0;
+ 	// left: 0;
+ 	background-color: transparent;
+ 	pointer-events: none;
+ 	z-index: var(--z-index-edge);
+ 	overflow: visible;
+ 	// z-index: 100; // Uncomment this to see where exactly the edges are on the ports
+
+ 	.hoverPath {
+ 		fill: none;
+ 		stroke: transparent;
+ 		stroke-width: 15px;
+ 		pointer-events: all;
+
+ 		&:hover~.path {
+ 			stroke: var(--color-primary);
+ 		}
+ 	}
+
+ 	.path {
+ 		fill: none;
+ 		stroke: var(--color-border);
+ 		stroke-width: 2px;
+ 		pointer-events: none;
+
+ 		&:hover {
+ 			stroke: var(--color-primary);
+ 		}
+
+ 		&.placeholder {
+ 			stroke-dasharray: 8px, 8px;
+ 			stroke-dashoffset: 0;
+ 			animation: dash 1s linear infinite;
+ 		}
+ 	}
+ }

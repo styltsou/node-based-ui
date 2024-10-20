@@ -1,7 +1,6 @@
-export interface Node {
+export interface NodeGroup {
   id: string;
-  type: string;
-  isLocked: boolean;
+  label: string;
   position: {
     x: number;
     y: number;
@@ -10,5 +9,6 @@ export interface Node {
     width: number;
     height: number;
   };
-  data?: Record<string, unknown>;
+
+  color: string;
 }

@@ -1,11 +1,17 @@
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Geist Variable', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   --color-primary: #6e6ade;
   --color-border: #444;
   --color-canvas: #1e1e1e;
   --color-foreground: #2d2d2d;
+  --color-node-toolbar: #181818;
+
+  --z-index-canvas: 0;
+  --z-index-edge: 1;
+  --z-index-node: 2;
+  --z-index-node-dragging: 3;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -38,20 +44,22 @@ button {
   cursor: pointer;
 }
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+// button:focus,
+// button:focus-visible {
+//   outline: 4px auto -webkit-focus-ring-color;
+// }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+// @media (prefers-color-scheme: light) {
+//   :root {
+//     color: #213547;
+//     background-color: #ffffff;
+//   }
+
+//   a:hover {
+//     color: #747bff;
+//   }
+
+//   button {
+//     background-color: #f9f9f9;
+//   }
+// }

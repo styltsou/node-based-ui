@@ -12,6 +12,7 @@ import { keyboardKeys } from '../../constants';
 
 import { useCustomZoom } from '../../hooks/use-custom-zoom';
 import cn from '../../utils/cn';
+import SelectionBox from '../selection-box';
 
 export default function InfiniteCanvas() {
   const canvasPosition = useBoardStore(s => s.position);
@@ -20,6 +21,8 @@ export default function InfiniteCanvas() {
   const updateZoom = useBoardStore(s => s.updateZoom);
   const nodes = useBoardStore(s => s.nodes);
   const edges = useBoardStore(s => s.edges);
+  const isCanvasInteractive = useBoardStore(s => s.isInteractive);
+  const saveLocalState = useBoardStore(s => s.saveLocalState);
 
   const { x: mouseX, y: mouseY } = useMouseInfo();
 
@@ -37,10 +40,19 @@ export default function InfiniteCanvas() {
     [isGrabCursor, isPointerDown]
   );
 
+  // const [isGroupouing, setIsGrouping] = useState(false);
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // if (
+    //   e.target === e.currentTarget ||
+    //   (e.target as HTMLElement).id === 'canvas'
+    // )
+    // TODO: Need to test this condition (the goal is to allow panning by dragging anywhere on the canvas, even nodes, when the nodes are locked)
+    // This is solves the problem of panning not triggering due to mouse down events getting captured by the edge containers
     if (
-      e.target === e.currentTarget ||
-      (e.target as HTMLElement).id === 'canvas'
+      (!isCanvasInteractive &&
+        (e.target as HTMLElement).id.startsWith('node')) ||
+      !(e.target as HTMLElement).id.startsWith('node')
     )
       setIsPointerDown(true);
   };
@@ -48,12 +60,6 @@ export default function InfiniteCanvas() {
   const handlePointerUp = () => {
     setIsPointerDown(false);
   };
-
-  // const handleCanvasContextMenuClick = (
-  //   e: React.SyntheticEvent<HTMLDivElement>
-  // ) => {
-  //   e.preventDefault();
-  // };
 
   useKeybindings([
     {
@@ -106,39 +112,39 @@ export default function InfiniteCanvas() {
 
       setPanStartPointerPosition({ x: 0, y: 0 });
       hasPanned.current = false;
+      saveLocalState();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPanning]);
 
   return (
     <CanvasContextMenu>
-      <div
+      <main
         className={cn(
           styles.canvasWrapper,
           isGrabCursor && styles.grab,
-          isPanning && styles.dragging
+          isPanning && styles.panning
         )}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        // onContextMenu={handleCanvasContextMenuClick}
       >
         <div
           id="canvas"
-          className={cn(
-            styles.canvas,
-            isGrabCursor && styles.grab,
-            isPanning && styles.panning
-          )}
+          // TODO: See if I can get away with removing the pointer styles here
+          className={styles.canvas}
           style={{ transform: canvasPanningTranslate }}
         >
           {nodes.map(node => (
             <Node key={node.id} node={node} />
           ))}
+
           {edges.map(edge => (
-            <Edge edge={edge} />
+            <Edge key={edge.id} edge={edge} />
           ))}
+
+          <SelectionBox />
         </div>
-      </div>
+      </main>
     </CanvasContextMenu>
   );
 }
