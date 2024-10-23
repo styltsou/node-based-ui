@@ -1,18 +1,23 @@
 import { useContext } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import styles from './styles.module.scss';
-import cn from '../../../utils/cn';
 
-import { ContextMenuContext } from '../../primitives/context-menu';
-import useBoardStore from '../../../store';
-import type { Node } from '../../../types';
+import { v4 as uuidv4 } from 'uuid';
 import { IconCheck } from '@tabler/icons-react';
 
+import type { Node } from '../../../types';
+import { PortPlacement } from '../../../types';
+
+import useBoardStore from '../../../store';
+import { ContextMenuContext } from '../../primitives/context-menu';
+import cn from '../../../utils/cn';
+
+import styles from './styles.module.scss';
+
 export default function MenuContent() {
-  const { close, position: contextMenuPosition } =
+  const { close: closeContextMenu, position: contextMenuPosition } =
     useContext(ContextMenuContext);
 
   const canvasPosition = useBoardStore(s => s.position);
+
   const areVerticalGuidesActive = useBoardStore(s => s.areVerticalGuidesActive);
   const areHorizontalGuidesActive = useBoardStore(
     s => s.areHorizontalGuidesActive
@@ -39,10 +44,16 @@ export default function MenuContent() {
         x: contextMenuPosition.x - canvasPosition.x,
         y: contextMenuPosition.y - canvasPosition.y,
       },
+      ports: [
+        PortPlacement.TOP,
+        PortPlacement.RIGHT,
+        PortPlacement.BOTTOM,
+        PortPlacement.LEFT,
+      ],
       data: { label: 'Label' },
     };
 
-    close();
+    closeContextMenu();
     addNode(node);
     saveLocalState();
   };
@@ -50,18 +61,19 @@ export default function MenuContent() {
   const handlePasteNode = () => {
     pasteNode(contextMenuPosition);
     saveLocalState();
+    closeContextMenu();
   };
 
   const handleToggleVerticalGuides = () => {
     toggleVerticalGuides();
     saveLocalState();
-    close();
+    closeContextMenu();
   };
 
   const handleToggleHorizontalGuides = () => {
     toggleHorizontalGuides();
     saveLocalState();
-    close();
+    closeContextMenu();
   };
 
   return (

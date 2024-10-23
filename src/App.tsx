@@ -1,16 +1,15 @@
 import { MouseInfoProvider } from '@faceless-ui/mouse-info';
 import InfiniteCanvas from './components/infinite-canvas';
-import Toolbar from './components/toolbar';
+import TopBar from './components/top-bar';
 import ViewControls from './components/view-controls';
-
+import OrthogonalRoutingRender from './components/orthogonal-routing-render';
 function App() {
   return (
     <MouseInfoProvider>
-      {/* <main> */}
+      <TopBar />
       <InfiniteCanvas />
-      <Toolbar />
+      <OrthogonalRoutingRender />
       <ViewControls />
-      {/* </main> */}
     </MouseInfoProvider>
   );
 }

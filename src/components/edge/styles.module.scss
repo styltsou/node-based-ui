@@ -4,13 +4,10 @@
  	}
  }
 
-
  .svg {
  	position: absolute;
  	min-width: 100%;
  	min-height: 100%;
- 	// top: 0;
- 	// left: 0;
  	background-color: transparent;
  	pointer-events: none;
  	z-index: var(--z-index-edge);

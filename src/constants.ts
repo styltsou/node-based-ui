@@ -93,3 +93,5 @@ export const MIN_NODE_HEIGHT = 50;
 export const PORT_SIZE = 0.75;
 
 export const NODE_ALIGNMENT_THRESHOLD = 5;
+
+export const EXPORT_FILENAME_PREFIX = 'node-based-ui-export';

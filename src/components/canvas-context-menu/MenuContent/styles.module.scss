@@ -17,4 +17,14 @@
 		background-color: var(--color-primary);
 		color: #ffffff;
 	}
+
+	&:disabled {
+		cursor: auto;
+		color: rgba(255, 255, 255, 0.40);
+
+		&:hover {
+			background-color: var(--color-foreground);
+			color: rgba(255, 255, 255, 0.40);
+		}
+	}
 }

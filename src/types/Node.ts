@@ -1,3 +1,5 @@
+import { PortPlacement } from './Port';
+
 export interface Node {
   id: string;
   type: string;
@@ -10,5 +12,6 @@ export interface Node {
     width: number;
     height: number;
   };
+  ports: PortPlacement[];
   data?: Record<string, unknown>;
 }

@@ -1,6 +1,16 @@
 import { create } from 'zustand';
+import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import type { Node, Edge, NodeGroup } from '../types';
+
+import type {
+  Node,
+  Edge,
+  NodeGroup,
+  AlignmentGuide,
+  ConnectionLine,
+} from '../types';
+import { EdgeType, PortPlacement } from '../types';
+import { ImportSchema } from '../schemas';
 import {
   MIN_ZOOM,
   MAX_ZOOM,
@@ -20,6 +30,8 @@ interface CanvasState {
   nodes: Node[];
   copiedNode: Node | null;
   edges: Edge[];
+  connectionLine: ConnectionLine | null;
+  alignmentGuides: AlignmentGuide[];
   nodeGroups: NodeGroup[];
 }
 
@@ -42,16 +54,20 @@ interface CanvasActions {
   deleteNode: (id: string) => void;
   addEdge: (edge: Edge) => void;
   deleteEdge: (id: string) => void;
+  updateConnectionLine: (
+    connectionLine: Partial<ConnectionLine> | null
+  ) => void;
+  setAlignmentGuides: (guides: AlignmentGuide[]) => void;
   createNodeGroup: (nodeGroup: NodeGroup) => void;
   updateNodeGroup: (id: string, nodeGroup: NodeGroup) => void;
   deleteNodeGroup: (id: string) => void;
   saveLocalState: () => void;
-  loadLocalState: () => void;
+  importData: (data: z.infer<typeof ImportSchema>) => void;
 }
 
 const STORAGE_KEY = 'global-store';
 
-const initialState: CanvasState = {
+const initialState: Omit<CanvasState, 'alignmentGuides' | 'connectionLine'> = {
   position: { x: 0, y: 0 },
   zoom: 1,
   isInteractive: true,
@@ -63,7 +79,14 @@ const initialState: CanvasState = {
   nodeGroups: [],
 };
 
-const hydrateState = (initialState: CanvasState) => {
+// TODO
+// 1. I want to have more flexibility in which state is saved on local storage
+// 2. I also want to add support for storing certain state on session storage
+// 3. I want to have a single action for updating node data
+
+const hydrateState = (
+  initialState: Omit<CanvasState, 'alignmentGuides' | 'connectionLine'>
+) => {
   const localState = localStorage.getItem(STORAGE_KEY);
 
   if (localState) {
@@ -77,6 +100,8 @@ const hydrateState = (initialState: CanvasState) => {
 
 const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
   ...hydrateState(initialState),
+  alignmentGuides: [],
+  connectionLine: null,
 
   updatePosition: position => set({ position: position }),
 
@@ -112,10 +137,10 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
   resetZoom: () => set({ zoom: 1 }),
 
   addNode: node => {
-    set(state => ({ nodes: [...state.nodes, node] }));
+    if (node.ports.length === 0)
+      node.ports = [PortPlacement.LEFT, PortPlacement.RIGHT];
 
-    console.log('New state to be saved');
-    console.log(get());
+    set(state => ({ nodes: [...state.nodes, node] }));
 
     localStorage.setItem('global-store', JSON.stringify(get()));
   },
@@ -179,6 +204,37 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
       edges: state.edges.filter(edge => edge.id !== id),
     })),
 
+  // TODO: Make this action more robust efficient
+  updateConnectionLine: partialConnectionLine =>
+    set(state => ({
+      connectionLine: partialConnectionLine
+        ? {
+            type: state.connectionLine?.type || EdgeType.Straight,
+            sourcePort: {
+              position: state.connectionLine?.sourcePort?.position || {
+                x: 0,
+                y: 0,
+              },
+              placement:
+                state.connectionLine?.sourcePort?.placement ||
+                PortPlacement.RIGHT,
+            },
+            targetPort: {
+              position: state.connectionLine?.targetPort?.position || {
+                x: 0,
+                y: 0,
+              },
+              placement:
+                state.connectionLine?.targetPort?.placement ||
+                PortPlacement.LEFT,
+            },
+            ...partialConnectionLine,
+          }
+        : null,
+    })),
+
+  setAlignmentGuides: guides => set({ alignmentGuides: guides }),
+
   createNodeGroup: nodeGroup =>
     set(state => ({ nodeGroups: [...state.nodeGroups, nodeGroup] })),
 
@@ -196,6 +252,18 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
 
   saveLocalState: () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(get()));
+  },
+
+  importData: data => {
+    set(state => ({
+      ...state,
+      position: data.position,
+      zoom: data.zoom,
+      nodes: data.nodes as Node[],
+      edges: data.edges as Edge[],
+    }));
+
+    get().saveLocalState();
   },
 }));
 

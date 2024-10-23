@@ -1,0 +1,46 @@
+.orthogonalRoutingRender {
+	pointer-events: none;
+
+	.rulers {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+
+		.line {
+			stroke: var(--color-primary);
+			stroke-width: 1;
+			stroke-dasharray: 2;
+		}
+	}
+
+	.gridBounds {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+
+		.gridBoundsRect {
+			stroke: red;
+			stroke-width: 1;
+			stroke-dasharray: 2;
+			fill: none;
+		}
+	}
+
+	.gridSlices {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+	}
+
+	.validConnectionPoints {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+	}
+
+	.possiblePaths {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+	}
+}

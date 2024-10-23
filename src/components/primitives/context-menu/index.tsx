@@ -17,8 +17,6 @@ const animationVariants = {
   exit: { opacity: 0.2, scale: 0.9, transition: { duration: 0.08 } },
 };
 
-// TODO: FIX THE FUCKING CONTEXT MENU
-
 export const ContextMenuContext = createContext<{
   isOpen: boolean;
   position: { x: number; y: number };
@@ -38,15 +36,11 @@ export const ContextMenu: React.FC<{
   children: React.ReactNode;
 }> = ({ onOpen, onClose, content, children }) => {
   const menuRef = useRef<HTMLDivElement>(null);
+
   // Keep a copy of them menu always mounted so I can caclulate its size
   // const menuCopyRef = useRef<HTMLDivElement>(null);
 
-  // const { lock, unlock } = useScrollLock({
-  //   autoLock: false,
-  // });
-
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  // const isOpenRef = useRef<boolean>(false);
 
   const [menuSize] = useState<{ width: number; height: number }>({
     width: 0,
@@ -67,8 +61,6 @@ export const ContextMenu: React.FC<{
   const openContextMenu = (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
     if (isOpen) return;
-    console.log('context menu opened');
-
     // Calculate the viewport quadrant that way in order to specify
     // the appropriate transform orgin to the menu
     const horizontalOrientation =
@@ -88,9 +80,6 @@ export const ContextMenu: React.FC<{
       y: e.clientY + menuOffset.y,
     });
 
-    console.log('set state');
-    console.log('position', position);
-
     onOpen?.();
     setIsOpen(true);
   };
@@ -98,7 +87,6 @@ export const ContextMenu: React.FC<{
   // TODO: Wrap function in a callback
   const closeContextMenu = () => {
     if (!isOpen) return;
-    console.log('should close');
 
     onClose?.();
     setIsOpen(false);
@@ -108,7 +96,6 @@ export const ContextMenu: React.FC<{
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        console.log('trigger close');
         closeContextMenu();
       }
     };

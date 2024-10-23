@@ -41,35 +41,4 @@
 		align-items: center;
 		user-select: none;
 	}
-
-	.portWrapper {
-		padding: 15px;
-		background-color: transparent;
-		position: absolute;
-		top: 50%;
-		left: 0;
-		transform: translate(-50%, -50%);
-		transition: border 0.1s ease-in-out;
-		// border: 1px dashed red; // ! Only for debugging purposes
-
-		.port {
-			background-color: var(--color-foreground);
-			border: 1px solid var(--color-border);
-			border-radius: 100%;
-			transition: border 0.1s ease-in-out;
-
-			&:hover {
-				background-color: var(--color-primary);
-			}
-
-			&:active {
-				background-color: var(--color-primary);
-				border-color: var(--color-primary);
-			}
-		}
-
-		&.right {
-			left: 100%;
-		}
-	}
 }

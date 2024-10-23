@@ -1,3 +1,5 @@
+import { PortPlacement } from './Port';
+
 export enum EdgeType {
   Straight = 'straight',
   Step = 'step',
@@ -8,6 +10,8 @@ export enum EdgeType {
 export interface Edge {
   id: string;
   source: string;
+  sourcePortPlacement: PortPlacement;
   target: string;
+  targetPortPlacement: PortPlacement;
   type: EdgeType;
 }

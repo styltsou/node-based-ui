@@ -1,9 +1,11 @@
-import type { Edge } from '../../types';
-import { EdgeType } from '../../types';
-import useBoardStore from '../../store';
-import cn from '../../utils/cn';
 import styles from './styles.module.scss';
-import getEdgePath, { getStraightEdgePath } from '../node/getEdgePath';
+
+import type { Edge } from '../../types';
+// import { EdgeType } from '../../types';
+
+import useBoardStore from '../../store';
+import getPortPosition from '../../utils/port/get-port-position';
+import getStraightEdgePath from '../../utils/edge/get-straight-edge-path';
 
 export default function Edge({ edge }: { edge: Edge }) {
   const nodes = useBoardStore(s => s.nodes);
@@ -14,8 +16,17 @@ export default function Edge({ edge }: { edge: Edge }) {
 
   if (!sourceNode || !targetNode) return null;
 
-  // const path = getEdgePath(sourceNodePort, targetNodePort, edge.type);
-  const path = getEdgePath(EdgeType.Straight, sourceNode, targetNode);
+  const sourcePortPosition = getPortPosition(
+    sourceNode,
+    edge.sourcePortPlacement
+  );
+
+  const targetPortPosition = getPortPosition(
+    targetNode,
+    edge.targetPortPlacement
+  );
+
+  const path = getStraightEdgePath(sourcePortPosition, targetPortPosition);
 
   const handleEdgeClick = () => {
     deleteEdge(edge.id);
@@ -25,34 +36,6 @@ export default function Edge({ edge }: { edge: Edge }) {
     <svg className={styles.svg}>
       <path className={styles.hoverPath} d={path} onClick={handleEdgeClick} />
       <path className={styles.path} d={path} />
-    </svg>
-  );
-}
-
-type ConnectionLineProps = {
-  start: {
-    x: number;
-    y: number;
-  };
-  end: {
-    x: number;
-    y: number;
-  };
-  type: EdgeType;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function ConnectionLine({ start, end, type }: ConnectionLineProps) {
-  const path = getStraightEdgePath(start, end);
-
-  // Not yet implemented
-  if (type !== EdgeType.Straight) {
-    return null;
-  }
-
-  return (
-    <svg className={styles.svg}>
-      <path className={cn(styles.path, styles.placeholder)} d={path} />
     </svg>
   );
 }

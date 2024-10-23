@@ -1,0 +1,25 @@
+ @keyframes dash {
+ 	to {
+ 		stroke-dashoffset: -80;
+ 	}
+ }
+
+ .svg {
+ 	position: absolute;
+ 	min-width: 100%;
+ 	min-height: 100%;
+ 	background-color: transparent;
+ 	pointer-events: none;
+ 	z-index: var(--z-index-edge);
+ 	overflow: visible;
+
+ 	.path {
+ 		fill: none;
+ 		stroke: var(--color-border);
+ 		stroke-width: 2px;
+ 		pointer-events: none;
+ 		stroke-dasharray: 8px, 8px;
+ 		stroke-dashoffset: 0;
+ 		animation: dash 1s linear infinite;
+ 	}
+ }

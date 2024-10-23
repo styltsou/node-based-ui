@@ -1,20 +1,24 @@
 import { useRef, useState, useEffect } from 'react';
 
-import { useMouseInfo } from '@faceless-ui/mouse-info';
 import { v4 as uuidv4 } from 'uuid';
-import { useOnClickOutside } from 'usehooks-ts';
 import { AnimatePresence, motion } from 'framer-motion';
-import styles from './styles.module.scss';
-import type { Node } from '../../types';
-import { EdgeType } from '../../types';
-import useBoardStore from '../../store';
-import ToolBar from './toolbar';
-import AlignmentGuide from '../alignment-guide';
-import getAlignmentGuides from './getAlignmentGuides';
-import cn from '../../utils/cn';
-import { ConnectionLine } from '../edge';
-import { PORT_SIZE } from '../../constants';
+import { useOnClickOutside } from 'usehooks-ts';
 import { IconLock } from '@tabler/icons-react';
+
+import type { Node, Point } from '../../types';
+import { EdgeType, PortPlacement } from '../../types';
+
+import ToolBar from './toolbar';
+import Port from './port';
+
+import useBoardStore from '../../store';
+import cn from '../../utils/cn';
+import getAlignmentGuides from '../../utils/get-alignment-guides';
+import getPortPosition from '../../utils/port/get-port-position';
+import parsePortId from '../../utils/port/parse-port-id';
+// import { PORT_SIZE } from '../../constants';
+
+import styles from './styles.module.scss';
 
 const lockIndicatorVariants = {
   initial: { opacity: 0, scale: 0.8, x: '85%', y: '-85%' },
@@ -34,9 +38,26 @@ const lockIndicatorVariants = {
   },
 };
 
+function LockIndicator({ isVisible }: { isVisible: boolean }) {
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          className={styles.lockIndicator}
+          variants={lockIndicatorVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+        >
+          <IconLock size={18} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function Node({ node }: { node: Node }) {
   const nodeRef = useRef<HTMLDivElement>(null);
-  const { x: mouseX, y: mouseY } = useMouseInfo();
 
   const saveLocalState = useBoardStore(s => s.saveLocalState);
   const nodes = useBoardStore(s => s.nodes);
@@ -44,60 +65,54 @@ export default function Node({ node }: { node: Node }) {
   const updateNodePosition = useBoardStore(s => s.updateNodePosition);
   const addEdge = useBoardStore(s => s.addEdge);
 
+  const updateConnectionLine = useBoardStore(s => s.updateConnectionLine);
+
   const canvasPosition = useBoardStore(s => s.position);
   const isCanvasInteractive = useBoardStore(s => s.isInteractive);
+
+  const alignmentGuides = useBoardStore(s => s.alignmentGuides);
+  const setAlignmentGuides = useBoardStore(s => s.setAlignmentGuides);
   const areVerticalGuidesActive = useBoardStore(s => s.areVerticalGuidesActive);
   const areHorizontalGuidesActive = useBoardStore(
     s => s.areHorizontalGuidesActive
   );
 
-  const [isToolBarOpen, setIsToolbarOpen] = useState(false);
+  const [isToolBarOpen, setIsToolbarOpen] = useState<boolean>(false);
 
-  const [isDragging, setIsDragging] = useState(false);
-  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
-
-  const [alignmentGuides, setAlignmentGuides] = useState<
-    {
-      position: number;
-      orientation: 'vertical' | 'horizontal';
-    }[]
-  >([]);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [mouseOffset, setMouseOffset] = useState<Point>({ x: 0, y: 0 });
 
   // * Connection line state
-  const [isAddingEdge, setIsAddingEdge] = useState(false);
-  const [edgeSource, setEdgeSource] = useState({ x: 0, y: 0 });
+  // const [isAddingEdge, setIsAddingEdge] = useState(false);
+  // const [edgeSource, setEdgeSource] = useState({ x: 0, y: 0 });
   // TODO: Try to init sink as null, then in placeHolder edge, avoid renderign an edge if sink is null
   // This will help sovle the bug where the sink on dragStart is set as the canvasPosition
-  const [edgeSink, setEdgeSink] = useState({ x: 0, y: 0 });
+  // const [edgeTarget, setEdgeTarget] = useState({ x: 0, y: 0 });
 
   // * Node dragging
-  const handleDragNodeStart = () => {
-    console.log('drag node start');
-    if (!isCanvasInteractive || node.isLocked) return;
-    console.log('drag node start: accepted');
+  const handleDragNodeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !isCanvasInteractive || node.isLocked) return;
     setIsDragging(true);
 
     setMouseOffset({
-      x: mouseX - node.position.x,
-      y: mouseY - node.position.y,
+      x: e.clientX - node.position.x,
+      y: e.clientY - node.position.y,
     });
   };
 
-  const handleDragNode = () => {
+  const handleDragNode = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isCanvasInteractive || node.isLocked || !isDragging) return;
-
-    const draggedNode = {
-      ...node,
-      position: { x: mouseX - mouseOffset.x, y: mouseY - mouseOffset.y },
-    };
 
     // TODO: Optimize by update state only if node is connected at least once (might be redundant)
     // Update node position show the edges render correctly while dragging
-    updateNodePosition(node.id, draggedNode.position);
+    updateNodePosition(node.id, {
+      x: e.clientX - mouseOffset.x,
+      y: e.clientY - mouseOffset.y,
+    });
 
-    const alignmentGuides = getAlignmentGuides(draggedNode, nodes, {
-      areVerticalGuidesActive,
-      areHorizontalGuidesActive,
+    const alignmentGuides = getAlignmentGuides(node, nodes, {
+      showVertical: areVerticalGuidesActive,
+      showHorizontal: areHorizontalGuidesActive,
     });
 
     setAlignmentGuides(alignmentGuides);
@@ -109,71 +124,100 @@ export default function Node({ node }: { node: Node }) {
     if (alignmentGuides.length !== 0) setAlignmentGuides([]);
 
     saveLocalState();
-
     setIsDragging(false);
   };
 
+  // TODO: I could possibly put all the port logic inside its component to make code cleaner.
   // * Port dragging
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDragPortStart = (e: React.DragEvent<HTMLDivElement>) => {
-    // ! This know works only for dragging from source to tagret node
+    const port = e.target as HTMLElement;
+    const portId = (port.closest('div[id^="port-"]') as HTMLElement).id;
 
+    const { portPlacement } = parsePortId(portId);
+
+    // ! This know works only for dragging from source to tagret node
     // TODO: Need to know if sink or source is being dragged
     // TODO: See if I can compute the position from the event
-    const portY = node.position.y + node.size.height / 2;
-    const portX = node.position.x + node.size.width;
+    const portPosition = getPortPosition(node, portPlacement);
 
-    e.dataTransfer.setData('text/plain', node.id);
+    e.dataTransfer.setData('text/plain', portId);
 
-    setEdgeSource({ x: portX, y: portY });
-    setIsAddingEdge(true);
+    updateConnectionLine({
+      sourcePort: {
+        placement: portPlacement,
+        position: portPosition,
+      },
+      targetPort: {
+        placement: PortPlacement.LEFT,
+        position: {
+          x: e.clientX - canvasPosition.x,
+          y: e.clientY - canvasPosition.y,
+        },
+      },
+    });
   };
 
   // TODO: Here is the difficult part about the snapping logic
   const handleDragPort = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!isAddingEdge) return;
-
-    setEdgeSink({
-      x: e.clientX - canvasPosition.x + PORT_SIZE / 2,
-      y: e.clientY - canvasPosition.y + PORT_SIZE / 2,
+    updateConnectionLine({
+      targetPort: {
+        placement: PortPlacement.LEFT,
+        position: {
+          x: e.clientX - canvasPosition.x,
+          y: e.clientY - canvasPosition.y,
+        },
+      },
     });
   };
 
-  // This event is triggered on the target node compared to the other drag events triggered on soure
-  // ! node prop here DOES NOT refer to the source node
+  // node here DOES NOT refer to the source node, but the target
   const handlePortDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const targetNode = node;
+    const portId = (e.target as HTMLElement).id;
+    if (!portId) return;
 
-    const targetNodePort = {
-      x: targetNode.position.x,
-      y: targetNode.position.y + targetNode.size.height / 2,
-    };
+    const { portPlacement } = parsePortId(portId);
+    const portPosition = getPortPosition(node, portPlacement);
 
-    setEdgeSink(targetNodePort);
-    // TODO: Here use a ref to avoid setting state on every drag move
+    // When the first drag over occurs, I need to find a way to seemingly connect the edge
+    // end permit the connection line from keep getting udpate. then on drop the edge gets created
+
+    updateConnectionLine({
+      targetPort: {
+        placement: portPlacement,
+        position: portPosition,
+      },
+    });
   };
 
   const handleDragPortEnd = () => {
-    setIsAddingEdge(false);
+    updateConnectionLine(null);
   };
 
   const handlePortDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    const sourceNodeId = e.dataTransfer.getData('text/plain');
+    const sourcePortId = e.dataTransfer.getData('text/plain');
 
-    const targetNodeId = node.id;
+    const { portPlacement: sourcePortPlacement, nodeId: sourceNodeId } =
+      parsePortId(sourcePortId);
+
+    const port = e.target as HTMLElement;
+    const targetPortId = (port.closest('div[id^="port-"]') as HTMLElement).id;
+    const { portPlacement: targetPortPlacement } = parsePortId(targetPortId);
 
     const doesEdgeExist = false;
 
-    setIsAddingEdge(false);
-    if (!sourceNodeId || !targetNodeId || doesEdgeExist) return;
+    // setIsAddingEdge(false);
+    updateConnectionLine(null);
+    if (!sourceNodeId || !node.id || doesEdgeExist) return;
 
     addEdge({
       id: uuidv4(),
       source: sourceNodeId,
-      target: targetNodeId,
+      target: node.id,
+      sourcePortPlacement,
+      targetPortPlacement,
       type: EdgeType.Straight,
     });
 
@@ -191,7 +235,7 @@ export default function Node({ node }: { node: Node }) {
     setIsToolbarOpen(false);
   });
 
-  // * Calculate and update node size
+  // Calculate node size
   useEffect(() => {
     if (nodeRef.current) {
       const { width, height } = nodeRef.current.getBoundingClientRect();
@@ -203,41 +247,19 @@ export default function Node({ node }: { node: Node }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const portStyle = {
-    width: `${PORT_SIZE}rem`,
-    height: `${PORT_SIZE}rem`,
-  };
-
-  const nodeTranslate = isDragging
-    ? `translate(${mouseX - mouseOffset.x}px, ${mouseY - mouseOffset.y}px)`
-    : `translate(${node.position.x}px, ${node.position.y}px)`;
-
   return (
     <>
       <div
         id={`node-${node.id}`}
         ref={nodeRef}
         className={cn(styles.node, isDragging && styles.dragging)}
-        style={{ transform: nodeTranslate }}
         onContextMenu={handleContextMenuClick}
+        style={{
+          transform: `translate(${node.position.x}px, ${node.position.y}px)`,
+        }}
       >
         <ToolBar node={node} isOpen={isToolBarOpen} />
-
-        <div
-          className={styles.portWrapper}
-          onDragOver={handlePortDragOver}
-          onDrop={handlePortDrop}
-        >
-          <div
-            className={styles.port}
-            style={portStyle}
-            onDragStart={handleDragPortStart}
-            onDrag={handleDragPort}
-            onDragOver={e => e.preventDefault()}
-            onDragEnd={handleDragPortEnd}
-            draggable
-          />
-        </div>
+        <LockIndicator isVisible={node.isLocked} />
         <div
           className={styles.contentWrapper}
           onMouseDown={handleDragNodeStart}
@@ -246,51 +268,19 @@ export default function Node({ node }: { node: Node }) {
         >
           Label
         </div>
-        <div
-          className={cn(styles.portWrapper, styles.right)}
-          onDragOver={handlePortDragOver}
-          onDrop={handlePortDrop}
-        >
-          <div
-            className={styles.port}
-            style={portStyle}
-            onDragStart={handleDragPortStart}
+        {node.ports.map(portPlacement => (
+          <Port
+            key={`port-${node.id}-${portPlacement}`}
+            nodeId={node.id}
+            placement={portPlacement}
             onDrag={handleDragPort}
-            onDragOver={e => e.preventDefault()}
+            onDragStart={handleDragPortStart}
+            onDragOver={handlePortDragOver}
+            onDrop={handlePortDrop}
             onDragEnd={handleDragPortEnd}
-            draggable
-          />
-        </div>
-        <AnimatePresence>
-          {node.isLocked && (
-            <motion.div
-              className={styles.lockIndicator}
-              variants={lockIndicatorVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
-              <IconLock size={18} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-      {isAddingEdge && (
-        <ConnectionLine
-          key="connection-line"
-          start={edgeSource}
-          end={edgeSink}
-          type={EdgeType.Straight}
-        />
-      )}
-      {alignmentGuides?.length !== 0 &&
-        alignmentGuides.map(guide => (
-          <AlignmentGuide
-            key={uuidv4()}
-            position={guide.position}
-            orientation={guide.orientation}
           />
         ))}
+      </div>
     </>
   );
 }
