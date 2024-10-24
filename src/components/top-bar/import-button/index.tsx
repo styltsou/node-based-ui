@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { z } from 'zod';
 import { IconUpload } from '@tabler/icons-react';
+import { toast } from 'sonner';
 
 import { ImportSchema } from '../../../schemas';
 import useBoardStore from '../../../store';
@@ -11,11 +12,18 @@ import styles from '../export-button/styles.module.scss'; // Use the same styles
 
 const ImportButton: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const zoom = useBoardStore(s => s.zoom);
+  const position = useBoardStore(s => s.position);
+  const nodes = useBoardStore(s => s.nodes);
+  const edges = useBoardStore(s => s.edges);
   const importData = useBoardStore(s => s.importData);
 
   const isEdgeVisualizationActive = !!useEdgeVisualizationStore(
     s => s.selectedEdgeId
   );
+
+  const previousDataRef = useRef<z.infer<typeof ImportSchema> | null>(null);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -31,13 +39,31 @@ const ImportButton: React.FC = () => {
           const jsonContent = JSON.parse(e.target?.result as string);
           const validatedData = ImportSchema.parse(jsonContent);
 
+          previousDataRef.current = {
+            position,
+            zoom,
+            nodes,
+            edges,
+          };
+
           importData(validatedData);
+
+          toast.success('Imported data successfully', {
+            action: {
+              label: 'Undo',
+              onClick: () => {
+                if (previousDataRef.current) {
+                  importData(previousDataRef.current);
+                  previousDataRef.current = null;
+                }
+              },
+            },
+          });
         } catch (error) {
           if (error instanceof z.ZodError) {
-            console.error('Invalid import data:', error.errors);
-            //TODO: show an error message to the user
+            toast.error('Invalid import data');
           } else {
-            console.error('Error parsing JSON file:', error);
+            toast.error('Error parsing JSON file');
           }
         }
       };

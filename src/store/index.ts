@@ -30,6 +30,7 @@ interface CanvasState {
   nodes: Node[];
   copiedNode: Node | null;
   edges: Edge[];
+  globalEdgeType: EdgeType | null;
   connectionLine: ConnectionLine | null;
   alignmentGuides: AlignmentGuide[];
   nodeGroups: NodeGroup[];
@@ -54,6 +55,8 @@ interface CanvasActions {
   deleteNode: (id: string) => void;
   addEdge: (edge: Edge) => void;
   deleteEdge: (id: string) => void;
+  setEdgeType: (id: string, type: EdgeType) => void;
+  setGlobalEdgeType: (edgeType: EdgeType | null) => void;
   updateConnectionLine: (
     connectionLine: Partial<ConnectionLine> | null
   ) => void;
@@ -76,6 +79,7 @@ const initialState: Omit<CanvasState, 'alignmentGuides' | 'connectionLine'> = {
   nodes: [],
   copiedNode: null,
   edges: [],
+  globalEdgeType: null,
   nodeGroups: [],
 };
 
@@ -203,6 +207,15 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
     set(state => ({
       edges: state.edges.filter(edge => edge.id !== id),
     })),
+
+  setEdgeType: (id, type) =>
+    set(state => ({
+      edges: state.edges.map(edge =>
+        edge.id === id ? { ...edge, type } : edge
+      ),
+    })),
+
+  setGlobalEdgeType: edgeType => set({ globalEdgeType: edgeType }),
 
   // TODO: Make this action more robust efficient
   updateConnectionLine: partialConnectionLine =>

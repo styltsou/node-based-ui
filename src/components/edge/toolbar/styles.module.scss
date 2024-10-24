@@ -1,0 +1,69 @@
+.wrapper {
+	position: absolute;
+	width: 100%;
+	top: 0;
+	left: 0;
+	z-index: 100;
+
+	.toolbar {
+		width: min-content;
+		display: flex;
+		background-color: var(--color-node-toolbar);
+		border-radius: 0.3rem;
+		transform: translateX(-50%);
+
+		.toolbarButton {
+			position: relative;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: 0.5rem 0.8rem;
+			color: white;
+			transition: 0.1s ease-in-out;
+
+			&:hover,
+			&.active {
+				background-color: var(--color-primary);
+			}
+
+			&:first-child {
+				border-radius: 0.3rem 0rem 0rem 0.3rem;
+			}
+
+			&:last-child {
+				border-radius: 0rem 0.3rem 0.3rem 0rem;
+			}
+		}
+
+		.edgeOptions {
+			width: 10rem;
+			position: absolute;
+			bottom: 100%;
+			left: 50%;
+			background-color: var(--color-node-toolbar);
+			border-radius: 0.3rem;
+			transform: translate(-50%, -0.5rem);
+
+			.edgeOptionButton {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 0.2rem;
+				width: 100%;
+				font-family: inherit;
+				font-size: 15px;
+				color: rgba(255, 255, 255, 0.7);
+				border: none;
+				padding: 0.3rem 0.5rem;
+				cursor: pointer;
+				transition: all 0.1s ease-in-out;
+
+				&:hover {
+					background-color: var(--color-primary);
+					color: #ffffff;
+				}
+
+			}
+		}
+	}
+}

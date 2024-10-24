@@ -17,7 +17,7 @@ const exitButtonVariants = {
 };
 
 const transitionOptions = {
-  duration: 0.1,
+  duration: 0.2,
 };
 
 export default function VisualizationControls() {

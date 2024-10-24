@@ -8,7 +8,6 @@ import { PortPlacement } from '../../../types';
 
 import useBoardStore from '../../../store';
 import { ContextMenuContext } from '../../primitives/context-menu';
-import cn from '../../../utils/cn';
 
 import styles from './styles.module.scss';
 
@@ -88,17 +87,11 @@ export default function MenuContent() {
       >
         Paste node
       </button>
-      <button
-        className={cn(styles.button)}
-        onClick={handleToggleVerticalGuides}
-      >
+      <button className={styles.button} onClick={handleToggleVerticalGuides}>
         Vertical guides
         {areVerticalGuidesActive && <IconCheck stroke={2} size={16} />}
       </button>
-      <button
-        className={cn(styles.button)}
-        onClick={handleToggleHorizontalGuides}
-      >
+      <button className={styles.button} onClick={handleToggleHorizontalGuides}>
         Horizontal guides
         {areHorizontalGuidesActive && <IconCheck stroke={2} size={16} />}
       </button>

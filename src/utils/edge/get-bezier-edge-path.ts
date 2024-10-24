@@ -1,57 +1,49 @@
-import { PortPlacement } from '../../types';
+// This is a modified version of the getBezierPath function from react-flow
+// (kind of) changed only a function signature to match the one used in the rest of the code
+// https://github.com/wbkd/react-flow/blob/main/src/utils/getBezierPath.ts
+
+import { Point, PortPlacement } from '../../types';
 
 export type GetBezierPathParams = {
-  sourceX: number;
-  sourceY: number;
-  sourcePosition?: PortPlacement;
-  targetX: number;
-  targetY: number;
-  targetPosition?: PortPlacement;
+  sourcePort: Point;
+  sourcePortPlacement?: PortPlacement;
+  targetPort: Point;
+  targetPortPlacement?: PortPlacement;
   curvature?: number;
 };
 
 export type GetControlWithCurvatureParams = {
   pos: PortPlacement;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  c: number;
+  sourcePort: Point;
+  targetPort: Point;
+  curvature: number;
 };
 
 export function getBezierEdgeCenter({
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourceControlX,
-  sourceControlY,
-  targetControlX,
-  targetControlY,
+  sourcePort,
+  targetPort,
+  sourceControl,
+  targetControl,
 }: {
-  sourceX: number;
-  sourceY: number;
-  targetX: number;
-  targetY: number;
-  sourceControlX: number;
-  sourceControlY: number;
-  targetControlX: number;
-  targetControlY: number;
+  sourcePort: Point;
+  targetPort: Point;
+  sourceControl: Point;
+  targetControl: Point;
 }): [number, number, number, number] {
   // cubic bezier t=0.5 mid point, not the actual mid point, but easy to calculate
   // https://stackoverflow.com/questions/67516101/how-to-find-distance-mid-point-of-bezier-curve
   const centerX =
-    sourceX * 0.125 +
-    sourceControlX * 0.375 +
-    targetControlX * 0.375 +
-    targetX * 0.125;
+    sourcePort.x * 0.125 +
+    sourceControl.x * 0.375 +
+    targetControl.x * 0.375 +
+    targetPort.x * 0.125;
   const centerY =
-    sourceY * 0.125 +
-    sourceControlY * 0.375 +
-    targetControlY * 0.375 +
-    targetY * 0.125;
-  const offsetX = Math.abs(centerX - sourceX);
-  const offsetY = Math.abs(centerY - sourceY);
+    sourcePort.y * 0.125 +
+    sourceControl.y * 0.375 +
+    targetControl.y * 0.375 +
+    targetPort.y * 0.125;
+  const offsetX = Math.abs(centerX - sourcePort.x);
+  const offsetY = Math.abs(centerY - sourcePort.y);
 
   return [centerX, centerY, offsetX, offsetY];
 }
@@ -66,21 +58,35 @@ function calculateControlOffset(distance: number, curvature: number): number {
 
 function getControlWithCurvature({
   pos,
-  x1,
-  y1,
-  x2,
-  y2,
-  c,
+  sourcePort,
+  targetPort,
+  curvature,
 }: GetControlWithCurvatureParams): [number, number] {
   switch (pos) {
     case PortPlacement.LEFT:
-      return [x1 - calculateControlOffset(x1 - x2, c), y1];
+      return [
+        sourcePort.x -
+          calculateControlOffset(sourcePort.x - targetPort.x, curvature),
+        sourcePort.y,
+      ];
     case PortPlacement.RIGHT:
-      return [x1 + calculateControlOffset(x2 - x1, c), y1];
+      return [
+        sourcePort.x +
+          calculateControlOffset(targetPort.x - sourcePort.x, curvature),
+        sourcePort.y,
+      ];
     case PortPlacement.TOP:
-      return [x1, y1 - calculateControlOffset(y1 - y2, c)];
+      return [
+        sourcePort.x,
+        sourcePort.y -
+          calculateControlOffset(sourcePort.y - targetPort.y, curvature),
+      ];
     case PortPlacement.BOTTOM:
-      return [x1, y1 + calculateControlOffset(y2 - y1, c)];
+      return [
+        sourcePort.x,
+        sourcePort.y +
+          calculateControlOffset(targetPort.y - sourcePort.y, curvature),
+      ];
   }
 }
 
@@ -107,13 +113,11 @@ function getControlWithCurvature({
       targetPosition: Position.Left,
 });
  */
-export function getBezierPath({
-  sourceX,
-  sourceY,
-  sourcePosition = PortPlacement.BOTTOM,
-  targetX,
-  targetY,
-  targetPosition = PortPlacement.TOP,
+export default function getBezierEdgePath({
+  sourcePort,
+  sourcePortPlacement = PortPlacement.BOTTOM,
+  targetPort,
+  targetPortPlacement = PortPlacement.TOP,
   curvature = 0.25,
 }: GetBezierPathParams): [
   path: string,
@@ -122,35 +126,27 @@ export function getBezierPath({
   offsetX: number,
   offsetY: number
 ] {
-  const [sourceControlX, sourceControlY] = getControlWithCurvature({
-    pos: sourcePosition,
-    x1: sourceX,
-    y1: sourceY,
-    x2: targetX,
-    y2: targetY,
-    c: curvature,
+  const sourceControl = getControlWithCurvature({
+    pos: sourcePortPlacement,
+    sourcePort,
+    targetPort,
+    curvature,
   });
-  const [targetControlX, targetControlY] = getControlWithCurvature({
-    pos: targetPosition,
-    x1: targetX,
-    y1: targetY,
-    x2: sourceX,
-    y2: sourceY,
-    c: curvature,
+  const targetControl = getControlWithCurvature({
+    pos: targetPortPlacement,
+    sourcePort,
+    targetPort,
+    curvature,
   });
   const [labelX, labelY, offsetX, offsetY] = getBezierEdgeCenter({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-    sourceControlX,
-    sourceControlY,
-    targetControlX,
-    targetControlY,
+    sourcePort,
+    targetPort,
+    sourceControl: { x: sourceControl[0], y: sourceControl[1] },
+    targetControl: { x: targetControl[0], y: targetControl[1] },
   });
 
   return [
-    `M${sourceX},${sourceY} C${sourceControlX},${sourceControlY} ${targetControlX},${targetControlY} ${targetX},${targetY}`,
+    `M${sourcePort.x},${sourcePort.y} C${sourceControl[0]},${sourceControl[1]} ${targetControl[0]},${targetControl[1]} ${targetPort.x},${targetPort.y}`,
     labelX,
     labelY,
     offsetX,

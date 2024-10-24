@@ -20,11 +20,11 @@ import {
   findShortestPath,
 } from '../../../utils/edge/orthogonal-routing';
 
-import { pathToSvg } from '../../../utils/edge/get-step-edge-path-grid';
+import { pathToSvg } from '../../../utils/edge/get-step-edge-path';
 import {
   CURVATURE_FACTOR,
   pathToSmoothSvg,
-} from '../../../utils/edge/get-smoothstep-edge';
+} from '../../../utils/edge/get-smoothstep-edge-path';
 
 function Rulers({ rulers }: { rulers: RulerLine[] }) {
   return (

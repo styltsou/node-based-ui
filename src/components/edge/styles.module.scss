@@ -12,13 +12,13 @@
  	pointer-events: none;
  	z-index: var(--z-index-edge);
  	overflow: visible;
- 	// z-index: 100; // Uncomment this to see where exactly the edges are on the ports
 
  	.hoverPath {
  		fill: none;
  		stroke: transparent;
  		stroke-width: 15px;
  		pointer-events: all;
+ 		z-index: 100;
 
  		&:hover~.path {
  			stroke: var(--color-primary);
@@ -29,9 +29,12 @@
  		fill: none;
  		stroke: var(--color-border);
  		stroke-width: 2px;
+ 		z-index: 10;
  		pointer-events: none;
+ 		transition: all 0.1s ease-in-out;
 
- 		&:hover {
+ 		&:hover,
+ 		&.active {
  			stroke: var(--color-primary);
  		}
 
