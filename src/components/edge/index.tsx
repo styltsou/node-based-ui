@@ -4,12 +4,16 @@ import type { Edge } from '../../types';
 // import { EdgeType } from '../../types';
 
 import useBoardStore from '../../store';
+import useEdgeVisualizationStore from '../../store/edgeVisualizationStore';
+
 import getPortPosition from '../../utils/port/get-port-position';
 import getStraightEdgePath from '../../utils/edge/get-straight-edge-path';
 
 export default function Edge({ edge }: { edge: Edge }) {
   const nodes = useBoardStore(s => s.nodes);
-  const deleteEdge = useBoardStore(s => s.deleteEdge);
+  // const deleteEdge = useBoardStore(s => s.deleteEdge);
+
+  const setSelectedEdgeId = useEdgeVisualizationStore(s => s.setSelectedEdgeId);
 
   const sourceNode = nodes.find(node => node.id === edge.source);
   const targetNode = nodes.find(node => node.id === edge.target);
@@ -29,7 +33,8 @@ export default function Edge({ edge }: { edge: Edge }) {
   const path = getStraightEdgePath(sourcePortPosition, targetPortPosition);
 
   const handleEdgeClick = () => {
-    deleteEdge(edge.id);
+    // deleteEdge(edge.id);
+    setSelectedEdgeId(edge.id);
   };
 
   return (

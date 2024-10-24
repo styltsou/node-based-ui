@@ -5,8 +5,11 @@ import {
   IconArrowBackUp,
   IconArrowForwardUp,
 } from '@tabler/icons-react';
-import styles from './styles.module.scss';
+
 import useBoardStore from '../../../store';
+import useEdgeVisualizationStore from '../../../store/edgeVisualizationStore';
+
+import styles from './styles.module.scss';
 
 export default function ViewControls() {
   const canvasPosition = useBoardStore(s => s.position);
@@ -14,6 +17,10 @@ export default function ViewControls() {
   const resetPanning = useBoardStore(s => s.resetPanning);
   const resetZoom = useBoardStore(s => s.resetZoom);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
+
+  const isEdgeVisualizationActive = !!useEdgeVisualizationStore(
+    s => s.selectedEdgeId
+  );
 
   const isPanned = useMemo(() => {
     return canvasPosition.x !== 0 || canvasPosition.y !== 0;
@@ -48,10 +55,16 @@ export default function ViewControls() {
       <button disabled={!isZoomed} onClick={handleResetZoom}>
         <IconZoomReset size={18} stroke={1.5} />
       </button>
-      <button disabled={!canUndo} onClick={handleUndo}>
+      <button
+        disabled={!canUndo || isEdgeVisualizationActive}
+        onClick={handleUndo}
+      >
         <IconArrowBackUp size={18} stroke={1.5} />
       </button>
-      <button disabled={!canRedo} onClick={handleRedo}>
+      <button
+        disabled={!canRedo || isEdgeVisualizationActive}
+        onClick={handleRedo}
+      >
         <IconArrowForwardUp size={18} stroke={1.5} />
       </button>
     </div>

@@ -11,10 +11,14 @@ import SelectionBox from '../selection-box';
 import CanvasContextMenu from '../canvas-context-menu';
 
 import useBoardStore from '../../store';
+import useEdgeVisualizationStore from '../../store/edgeVisualizationStore';
+
 import { useKeybindings } from '../../hooks/use-keybindings';
 import { useCustomZoom } from '../../hooks/use-custom-zoom';
 import { keyboardKeys } from '../../constants';
 import cn from '../../utils/cn';
+
+import EdgeRoutingRenderer from '../edge-routing-visualization/renderer';
 
 export default function InfiniteCanvas() {
   const canvasPosition = useBoardStore(s => s.position);
@@ -25,6 +29,8 @@ export default function InfiniteCanvas() {
   const edges = useBoardStore(s => s.edges);
   // const isCanvasInteractive = useBoardStore(s => s.isInteractive);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
+
+  const visualizedEdgeId = useEdgeVisualizationStore(s => s.selectedEdgeId);
 
   const [isGrabCursor, setIsGrabCursor] = useState<boolean>(false);
   const [isPointerDown, setIsPointerDown] = useState<boolean>(false);
@@ -123,16 +129,22 @@ export default function InfiniteCanvas() {
           className={styles.canvas}
           style={{ transform: canvasTransform }}
         >
-          {nodes.map(node => (
-            <Node key={node.id} node={node} />
-          ))}
+          {visualizedEdgeId ? (
+            <EdgeRoutingRenderer />
+          ) : (
+            <>
+              {nodes.map(node => (
+                <Node key={node.id} node={node} />
+              ))}
 
-          {edges.map(edge => (
-            <Edge key={edge.id} edge={edge} />
-          ))}
-          <ConnectionLine />
-          <AlignmentGuides />
-          <SelectionBox />
+              {edges.map(edge => (
+                <Edge key={edge.id} edge={edge} />
+              ))}
+              <ConnectionLine />
+              <AlignmentGuides />
+              <SelectionBox />
+            </>
+          )}
         </div>
       </main>
     </CanvasContextMenu>

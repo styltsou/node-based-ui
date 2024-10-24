@@ -1,6 +1,12 @@
 import styles from './styles.module.scss';
-import useBoardStore from '../../store';
-import { Point } from '../../types';
+import { Point } from '../../../types';
+
+import Node from '../../node';
+
+import useBoardStore from '../../../store';
+import useEdgeVisualizationStore from '../../../store/edgeVisualizationStore';
+import getPortPosition from '../../../utils/port/get-port-position';
+
 import {
   getRulerLines,
   getGridBounds,
@@ -9,10 +15,17 @@ import {
   type GridSlice,
   type GraphNode,
   getGridSlices,
-  getValidConnectionPoints,
+  getConnectionPoints,
   getOrthogonalGraph,
-} from '../../utils/edge/get-step-edge-path';
-import getPortPosition from '../../utils/port/get-port-position';
+  findShortestPath,
+} from '../../../utils/edge/orthogonal-routing';
+
+import { pathToSvg } from '../../../utils/edge/get-step-edge-path-grid';
+import {
+  CURVATURE_FACTOR,
+  pathToSmoothSvg,
+} from '../../../utils/edge/get-smoothstep-edge';
+
 function Rulers({ rulers }: { rulers: RulerLine[] }) {
   return (
     <svg className={styles.rulers}>
@@ -53,7 +66,7 @@ function GridBounds({ bounds }: { bounds: GridBounds }) {
 }
 
 function GridSlices({ slices }: { slices: GridSlice[] }) {
-  const padding = 4;
+  const padding = 3;
 
   const colorMap: Record<GridSlice['type'], string> = {
     corner: '#FFB6C6',
@@ -78,7 +91,7 @@ function GridSlices({ slices }: { slices: GridSlice[] }) {
   );
 }
 
-function ValidConnectionPoints({ points }: { points: Point[] }) {
+function ConnectionPoints({ points }: { points: Point[] }) {
   return (
     <svg className={styles.validConnectionPoints}>
       {points.map(point => (
@@ -109,11 +122,10 @@ function PossiblePaths({ graph }: { graph: Map<string, GraphNode> }) {
                 y1={node.point.y}
                 x2={edge.node.point.x}
                 y2={edge.node.point.y}
-                stroke="white"
-                strokeWidth="1"
               />
             );
           }
+
           return null;
         })
       )}
@@ -121,13 +133,41 @@ function PossiblePaths({ graph }: { graph: Map<string, GraphNode> }) {
   );
 }
 
-export default function OrthogonalRoutingRender() {
+function StepEdge({ path }: { path: string }) {
+  return (
+    <svg className={styles.stepEdge}>
+      <path d={path} strokeWidth="2" />
+    </svg>
+  );
+}
+
+function PortSVG({ port }: { port: Point }) {
+  return (
+    <svg className={styles.port}>
+      <circle cx={port.x} cy={port.y} r={5} />
+    </svg>
+  );
+}
+
+export default function EdgeRoutingRenderer() {
   const nodes = useBoardStore(s => s.nodes);
   const edges = useBoardStore(s => s.edges);
 
-  if (edges.length === 0) return null;
+  const selectedEdgeId = useEdgeVisualizationStore(s => s.selectedEdgeId);
+  const edge = edges.find(e => e.id === selectedEdgeId);
 
-  const edge = edges[0];
+  const {
+    showRulers,
+    showGridBounds,
+    showGridSlices,
+    showConnectionPoints,
+    showPossiblePaths,
+    showStepEdge,
+    showSmoothEdge,
+  } = useEdgeVisualizationStore();
+
+  if (!edge) return null;
+
   const sourceNode = nodes.find(n => n.id === edge.source)!;
   const targetNode = nodes.find(n => n.id === edge.target)!;
 
@@ -148,7 +188,7 @@ export default function OrthogonalRoutingRender() {
     gridBounds,
   });
 
-  let validConnectionPoints = getValidConnectionPoints({
+  let connectionPoints = getConnectionPoints({
     sourceNode,
     targetNode,
     slices: gridSlices,
@@ -158,21 +198,46 @@ export default function OrthogonalRoutingRender() {
   const sourcePort = getPortPosition(sourceNode, edge.sourcePortPlacement);
   const targetPort = getPortPosition(targetNode, edge.targetPortPlacement);
 
-  validConnectionPoints = [sourcePort, ...validConnectionPoints, targetPort];
+  connectionPoints = [sourcePort, ...connectionPoints, targetPort];
 
   const graph = getOrthogonalGraph(
-    validConnectionPoints,
+    connectionPoints,
     sourceNode,
-    targetNode
+    edge.sourcePortPlacement,
+    targetNode,
+    edge.targetPortPlacement
   );
+
+  const path = findShortestPath(graph, sourcePort, targetPort);
+
+  const smoothStepRadius =
+    Math.min(
+      sourceNode.size.width,
+      sourceNode.size.height,
+      targetNode.size.width,
+      targetNode.size.height
+    ) / CURVATURE_FACTOR;
+
+  const svgPath = showSmoothEdge
+    ? pathToSmoothSvg(path, smoothStepRadius)
+    : pathToSvg(path);
 
   return (
     <div className={styles.orthogonalRoutingRender}>
-      {/* <Rulers rulers={rulers} /> */}
-      {/* <GridBounds bounds={gridBounds} /> */}
-      {/* <GridSlices slices={gridSlices} /> */}
-      {/* <ValidConnectionPoints points={validConnectionPoints} /> */}
-      <PossiblePaths graph={graph} />
+      {showRulers && <Rulers rulers={rulers} />}
+      {showGridBounds && <GridBounds bounds={gridBounds} />}
+      {showGridSlices && <GridSlices slices={gridSlices} />}
+      {showConnectionPoints && <ConnectionPoints points={connectionPoints} />}
+      {showPossiblePaths && <PossiblePaths graph={graph} />}
+      {showStepEdge && <StepEdge path={svgPath} />}
+
+      <div className={styles.nodes}>
+        <Node node={sourceNode} />
+        <Node node={targetNode} />
+      </div>
+
+      <PortSVG port={sourcePort} />
+      <PortSVG port={targetPort} />
     </div>
   );
 }

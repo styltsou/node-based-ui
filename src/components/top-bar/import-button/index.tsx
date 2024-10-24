@@ -4,12 +4,18 @@ import { IconUpload } from '@tabler/icons-react';
 
 import { ImportSchema } from '../../../schemas';
 import useBoardStore from '../../../store';
+import useEdgeVisualizationStore from '../../../store/edgeVisualizationStore';
+
 //  TODO: This is bad, create  reusable styled buttons
 import styles from '../export-button/styles.module.scss'; // Use the same styles as ExportButton
 
 const ImportButton: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importData = useBoardStore(s => s.importData);
+
+  const isEdgeVisualizationActive = !!useEdgeVisualizationStore(
+    s => s.selectedEdgeId
+  );
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -41,7 +47,11 @@ const ImportButton: React.FC = () => {
 
   return (
     <>
-      <button className={styles.button} onClick={handleImportClick}>
+      <button
+        className={styles.button}
+        onClick={handleImportClick}
+        disabled={isEdgeVisualizationActive}
+      >
         Import
         <IconUpload size={18} stroke={1.5} />
       </button>

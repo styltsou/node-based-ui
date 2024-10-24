@@ -1,0 +1,83 @@
+.exitButtonWrapper {
+	position: fixed;
+	top: 1rem;
+	left: 0;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	z-index: 1000;
+	pointer-events: none;
+
+	button {
+		pointer-events: auto;
+		font-size: 0.9rem;
+		padding: 0.7rem 1rem;
+		background-color: var(--color-foreground);
+		color: white;
+		border: 1px solid var(--color-danger);
+		border-radius: 0.2rem;
+		cursor: pointer;
+		transition: background-color 0.1s ease-in-out;
+
+		&:hover {
+			background-color: var(--color-danger);
+		}
+	}
+}
+
+.controlsBox {
+	position: fixed;
+	bottom: 1rem;
+	right: 1rem;
+	background-color: var(--color-foreground);
+	border: 1px solid var(--color-border);
+	border-radius: 0.2rem;
+	padding: 1.2rem;
+	z-index: 1000;
+
+	h3 {
+		margin-top: 0;
+		margin-bottom: 1rem;
+	}
+
+	label {
+		display: flex;
+		align-items: center;
+		margin-bottom: 0.5rem;
+
+		input {
+			-webkit-appearance: none;
+			-moz-appearance: none;
+			appearance: none;
+			width: 18px;
+			height: 18px;
+			border: 2px solid var(--color-border);
+			border-radius: 3px;
+			margin-right: 0.5rem;
+			outline: none;
+			cursor: pointer;
+			position: relative;
+
+			&:disabled {
+				cursor: not-allowed;
+			}
+
+			&:checked {
+				background-color: var(--color-primary);
+				border-color: var(--color-primary);
+
+				&::after {
+					content: '\2714';
+					font-size: 13px;
+					color: var(--color-white);
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+				}
+			}
+
+
+		}
+	}
+}

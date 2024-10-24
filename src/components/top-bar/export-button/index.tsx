@@ -3,6 +3,7 @@ import styles from './styles.module.scss';
 import { IconDownload } from '@tabler/icons-react';
 
 import useBoardStore from '../../../store';
+import useEdgeVisualizationStore from '../../../store/edgeVisualizationStore';
 import { EXPORT_FILENAME_PREFIX } from '../../../constants';
 
 export default function ExportButton() {
@@ -10,6 +11,10 @@ export default function ExportButton() {
   const zoom = useBoardStore(s => s.zoom);
   const nodes = useBoardStore(s => s.nodes);
   const edges = useBoardStore(s => s.edges);
+
+  const isEdgeVisualizationActive = !!useEdgeVisualizationStore(
+    s => s.selectedEdgeId
+  );
 
   const hasData = nodes.length > 0;
 
@@ -37,7 +42,7 @@ export default function ExportButton() {
     <button
       className={styles.button}
       onClick={handleExport}
-      disabled={!hasData}
+      disabled={!hasData || isEdgeVisualizationActive}
     >
       Export
       <IconDownload size={18} stroke={1.5} />
