@@ -25,6 +25,8 @@ export default function Edge({ edge }: { edge: Edge }) {
 
   const [toolbarPosition, setToolbarPosition] = useState<Point | null>(null);
 
+  const [isEdgeHovered, setIsEdgeHovered] = useState(false);
+
   const sourceNode = nodes.find(node => node.id === edge.source);
   const targetNode = nodes.find(node => node.id === edge.target);
 
@@ -85,8 +87,14 @@ export default function Edge({ edge }: { edge: Edge }) {
   return (
     <>
       <Toolbar edge={edge} position={toolbarPosition} ref={toolbarRef} />
-      <svg className={styles.svg}>
-        <path className={styles.hoverPath} d={path} onClick={handleEdgeClick} />
+      <svg className={cn(styles.svg, isEdgeHovered && styles.hovered)}>
+        <path
+          className={styles.hoverPath}
+          d={path}
+          onClick={handleEdgeClick}
+          onMouseEnter={() => setIsEdgeHovered(true)}
+          onMouseLeave={() => setIsEdgeHovered(false)}
+        />
         <path
           className={cn(styles.path, toolbarPosition && styles.active)}
           d={path}

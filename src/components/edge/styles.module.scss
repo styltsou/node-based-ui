@@ -13,6 +13,10 @@
  	z-index: var(--z-index-edge);
  	overflow: visible;
 
+ 	&.hovered {
+ 		z-index: var(--z-index-edge-hover);
+ 	}
+
  	.hoverPath {
  		fill: none;
  		stroke: transparent;
