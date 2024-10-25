@@ -6,6 +6,7 @@ import ImportButton from './import-button';
 
 import EdgeTypeSelector from './edge-type-selector';
 import ResetControls from './reset-controls';
+
 const TopBar: React.FC = () => {
   return (
     <div className={styles.wrapper}>
