@@ -70,10 +70,10 @@ export default function Edge({ edge }: { edge: Edge }) {
       break;
     case EdgeType.Bezier:
       [path, , , ,] = getBezierEdgePath({
-        sourcePort: sourcePortPosition,
-        targetPort: targetPortPosition,
-        sourcePortPlacement: edge.sourcePortPlacement,
-        targetPortPlacement: edge.targetPortPlacement,
+        source: sourcePortPosition,
+        target: targetPortPosition,
+        sourcePlacement: edge.sourcePortPlacement,
+        targetPlacement: edge.targetPortPlacement,
       });
       break;
     default:
