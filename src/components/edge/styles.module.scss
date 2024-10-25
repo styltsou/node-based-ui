@@ -13,7 +13,7 @@
  	z-index: var(--z-index-edge);
  	overflow: visible;
 
- 	&.hovered {
+ 	&.highlighted {
  		z-index: var(--z-index-edge-hover);
  	}
 
@@ -37,8 +37,8 @@
  		pointer-events: none;
  		transition: all 0.1s ease-in-out;
 
- 		&:hover,
- 		&.active {
+ 		// &:hover,
+ 		&.highlighted {
  			stroke: var(--color-primary);
  		}
 

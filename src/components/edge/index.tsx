@@ -87,7 +87,12 @@ export default function Edge({ edge }: { edge: Edge }) {
   return (
     <>
       <Toolbar edge={edge} position={toolbarPosition} ref={toolbarRef} />
-      <svg className={cn(styles.svg, isEdgeHovered && styles.hovered)}>
+      <svg
+        className={cn(
+          styles.svg,
+          (isEdgeHovered || toolbarPosition) && styles.highlighted
+        )}
+      >
         <path
           className={styles.hoverPath}
           d={path}
@@ -96,7 +101,7 @@ export default function Edge({ edge }: { edge: Edge }) {
           onMouseLeave={() => setIsEdgeHovered(false)}
         />
         <path
-          className={cn(styles.path, toolbarPosition && styles.active)}
+          className={cn(styles.path, toolbarPosition && styles.highlighted)}
           d={path}
         />
       </svg>

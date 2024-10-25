@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { forwardRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import {
   IconVectorSpline,
@@ -13,7 +13,7 @@ import useEdgeVisualizationStore from '../../../store/edgeVisualizationStore';
 import cn from '../../../utils/cn';
 import styles from './styles.module.scss';
 
-const variants: Variants = {
+const toolbarVariants: Variants = {
   initial: {
     y: '-110%',
     opacity: 0,
@@ -30,7 +30,60 @@ const variants: Variants = {
   },
 };
 
-import { forwardRef } from 'react';
+const edgeTypeSelectorVariants: Variants = {
+  initial: {
+    x: '-50%',
+    y: '0.5rem',
+    opacity: 0,
+  },
+  enter: {
+    x: '-50%',
+    y: '-0.7rem',
+    opacity: 1,
+    transition: { duration: 0.04 },
+  },
+  exit: {
+    x: '-50%',
+    y: '0.5rem',
+    opacity: 0,
+    transition: { duration: 0.04 },
+  },
+};
+
+const EdgeTypeOptions = ({
+  edge,
+  onSetEdgeType,
+  isOpen,
+}: {
+  edge: Edge;
+  onSetEdgeType: (type: EdgeType) => void;
+  isOpen: boolean;
+}) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className={styles.edgeOptions}
+          variants={edgeTypeSelectorVariants}
+          initial="initial"
+          animate="enter"
+          exit="exit"
+        >
+          {Object.values(EdgeType).map(type => (
+            <button
+              key={type}
+              className={styles.edgeOptionButton}
+              onClick={() => onSetEdgeType(type)}
+            >
+              {type.charAt(0).toUpperCase() + type.slice(1)}
+              {edge.type === type && <IconCheck stroke={2} size={16} />}
+            </button>
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 const ToolBar = forwardRef<
   HTMLDivElement,
@@ -42,7 +95,6 @@ const ToolBar = forwardRef<
   const deleteEdge = useBoardStore(s => s.deleteEdge);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
   const setEdgeType = useBoardStore(s => s.setEdgeType);
-
   const setEdgeVisualizationId = useEdgeVisualizationStore(
     s => s.setSelectedEdgeId
   );
@@ -62,12 +114,12 @@ const ToolBar = forwardRef<
     setEdgeVisualizationId(edge.id);
   };
 
-  const handleSetEdgeType = (type: EdgeType) => () => {
+  const handleSetEdgeType = (type: EdgeType) => {
     setEdgeType(edge.id, type);
     saveLocalState();
+    setAreEdgeOptionsOpen(false);
   };
 
-  // Close EdgeOptions submenu when toolbar closes
   useEffect(() => {
     return () => {
       setAreEdgeOptionsOpen(false);
@@ -80,7 +132,7 @@ const ToolBar = forwardRef<
         <motion.div
           ref={ref}
           className={styles.wrapper}
-          variants={variants}
+          variants={toolbarVariants}
           initial="initial"
           animate="enter"
           exit="exit"
@@ -97,47 +149,12 @@ const ToolBar = forwardRef<
               )}
               onClick={handleEdgeOptionsClick}
             >
-              {areEdgeOptionsOpen && (
-                <div className={styles.edgeOptions}>
-                  <button
-                    className={styles.edgeOptionButton}
-                    onClick={handleSetEdgeType(EdgeType.Straight)}
-                  >
-                    Straight
-                    {edge.type === EdgeType.Straight && (
-                      <IconCheck stroke={2} size={16} />
-                    )}
-                  </button>
-                  <button
-                    className={styles.edgeOptionButton}
-                    onClick={handleSetEdgeType(EdgeType.Step)}
-                  >
-                    Step
-                    {edge.type === EdgeType.Step && (
-                      <IconCheck stroke={2} size={16} />
-                    )}
-                  </button>
-                  <button
-                    className={styles.edgeOptionButton}
-                    onClick={handleSetEdgeType(EdgeType.SmoothStep)}
-                  >
-                    Smoothstep
-                    {edge.type === EdgeType.SmoothStep && (
-                      <IconCheck stroke={2} size={16} />
-                    )}
-                  </button>
-                  <button
-                    className={styles.edgeOptionButton}
-                    onClick={handleSetEdgeType(EdgeType.Bezier)}
-                  >
-                    Bezier
-                    {edge.type === EdgeType.Bezier && (
-                      <IconCheck stroke={2} size={16} />
-                    )}
-                  </button>
-                </div>
-              )}
               <IconVectorSpline size={18} stroke={1} />
+              <EdgeTypeOptions
+                edge={edge}
+                onSetEdgeType={handleSetEdgeType}
+                isOpen={areEdgeOptionsOpen}
+              />
             </button>
             <button
               className={styles.toolbarButton}

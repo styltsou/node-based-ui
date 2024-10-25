@@ -34,36 +34,58 @@
 				border-radius: 0rem 0.3rem 0.3rem 0rem;
 			}
 		}
+	}
+}
 
-		.edgeOptions {
-			width: 10rem;
-			position: absolute;
-			bottom: 100%;
-			left: 50%;
-			background-color: var(--color-node-toolbar);
-			border-radius: 0.3rem;
-			transform: translate(-50%, -0.5rem);
+.edgeOptions {
+	width: 10rem;
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	background-color: var(--color-node-toolbar);
+	border-radius: 0.3rem;
+	padding: 0.2rem;
 
-			.edgeOptionButton {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				gap: 0.2rem;
-				width: 100%;
-				font-family: inherit;
-				font-size: 15px;
-				color: rgba(255, 255, 255, 0.7);
-				border: none;
-				padding: 0.3rem 0.5rem;
-				cursor: pointer;
-				transition: all 0.1s ease-in-out;
+	.edgeOptionButton {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.2rem;
+		width: 100%;
+		font-family: inherit;
+		font-size: 15px;
+		color: rgba(255, 255, 255, 0.7);
+		border: none;
+		padding: 0.3rem 0.5rem;
+		cursor: pointer;
+		transition: all 0.1s ease-in-out;
 
-				&:hover {
-					background-color: var(--color-primary);
-					color: #ffffff;
-				}
-
-			}
+		&:first-child {
+			border-top-left-radius: 0.2rem;
+			border-top-right-radius: 0.2rem;
 		}
+
+		&:last-child {
+			border-bottom-left-radius: 0.2rem;
+			border-bottom-right-radius: 0.2rem;
+		}
+
+		&:hover {
+			background-color: var(--color-primary);
+			color: #ffffff;
+		}
+	}
+
+	&::before {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		width: 30px;
+		height: 30px;
+		background-color: var(--color-node-toolbar);
+		border-radius: 0.2rem;
+		transform: translateX(-50%) rotate(45deg) translateY(2px);
+		z-index: -1;
 	}
 }
