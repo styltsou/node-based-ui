@@ -8,7 +8,7 @@ import useBoardStore from '../../../store';
 import useEdgeVisualizationStore from '../../../store/edgeVisualizationStore';
 
 //  TODO: This is bad, create  reusable styled buttons
-import styles from '../export-button/styles.module.scss'; // Use the same styles as ExportButton
+import styles from './styles.module.scss'; // Use the same styles as ExportButton
 
 const ImportButton: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,7 +74,7 @@ const ImportButton: React.FC = () => {
   return (
     <>
       <button
-        className={styles.button}
+        className={styles.importButton}
         onClick={handleImportClick}
         disabled={isEdgeVisualizationActive}
       >

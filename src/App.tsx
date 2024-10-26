@@ -1,15 +1,15 @@
-import { MouseInfoProvider } from '@faceless-ui/mouse-info';
 import { Toaster } from 'sonner';
+
+import { ModalProvider } from './components/primitives/modal/context';
 
 import InfiniteCanvas from './components/infinite-canvas';
 import TopBar from './components/top-bar';
 import ViewControls from './components/view-controls';
-
 import VisualizationControls from './components/edge-routing-visualization/controls';
 
 function App() {
   return (
-    <MouseInfoProvider>
+    <ModalProvider>
       <Toaster
         position="top-center"
         duration={2500}
@@ -29,7 +29,7 @@ function App() {
       <InfiniteCanvas />
       <ViewControls />
       <VisualizationControls />
-    </MouseInfoProvider>
+    </ModalProvider>
   );
 }
 

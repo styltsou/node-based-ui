@@ -7,6 +7,7 @@ import {
 } from '@tabler/icons-react';
 import styles from './styles.module.scss';
 import useBoardStore from '../../store';
+import cn from '../../utils/cn';
 import { MIN_ZOOM, MAX_ZOOM } from '../../constants';
 
 export default function ViewControls() {
@@ -104,7 +105,10 @@ export default function ViewControls() {
       <button className={styles.iconButton} onClick={handleFitInView}>
         <IconMaximize size={18} stroke={1.5} />
       </button>
-      <button onClick={handleToggleInteractivity}>
+      <button
+        onClick={handleToggleInteractivity}
+        className={cn(!isInteractive && styles.highlight)}
+      >
         {isInteractive ? (
           <IconLockOpen size={18} stroke={1.5} />
         ) : (

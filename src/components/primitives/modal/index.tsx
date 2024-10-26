@@ -1,4 +1,4 @@
-// A generic ui compoent to create more complex modals
-export default function Modal() {
-  return <div></div>;
-}
+import { ModalContext, ModalProvider } from './context';
+import Modal from './modal';
+
+export { ModalProvider, ModalContext, Modal };

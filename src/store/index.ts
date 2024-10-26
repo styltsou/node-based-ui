@@ -143,7 +143,12 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
 
   addNode: node => {
     if (node.ports.length === 0)
-      node.ports = [PortPlacement.LEFT, PortPlacement.RIGHT];
+      node.ports = [
+        PortPlacement.TOP,
+        PortPlacement.RIGHT,
+        PortPlacement.BOTTOM,
+        PortPlacement.LEFT,
+      ];
 
     set(state => ({ nodes: [...state.nodes, node] }));
 

@@ -85,13 +85,6 @@ export default function Node({ node }: { node: Node }) {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [mouseOffset, setMouseOffset] = useState<Point>({ x: 0, y: 0 });
 
-  // * Connection line state
-  // const [isAddingEdge, setIsAddingEdge] = useState(false);
-  // const [edgeSource, setEdgeSource] = useState({ x: 0, y: 0 });
-  // TODO: Try to init sink as null, then in placeHolder edge, avoid renderign an edge if sink is null
-  // This will help sovle the bug where the sink on dragStart is set as the canvasPosition
-  // const [edgeTarget, setEdgeTarget] = useState({ x: 0, y: 0 });
-
   // * Node dragging
   const handleDragNodeStart = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0 || !isCanvasInteractive || node.isLocked) return;
@@ -137,11 +130,6 @@ export default function Node({ node }: { node: Node }) {
     const portId = (port.closest('div[id^="port-"]') as HTMLElement).id;
 
     const { portPlacement } = parsePortId(portId);
-
-    // ! This know works only for dragging from source to tagret node
-    // TODO: Need to know if sink or source is being dragged
-    // TODO: See if I can compute the position from the event
-    // const portPosition = getPortPosition(node, portPlacement);
 
     e.dataTransfer.setData('text/plain', portId);
 
@@ -197,7 +185,6 @@ export default function Node({ node }: { node: Node }) {
       position: targetNodePosition,
     };
 
-    // TODO: Here we can caclulate a new port placement depending on the target's proximity to a node poty
     updateConnectionLine({
       targetNode,
       targetPortPlacement: targetNodePortPlacement,
@@ -239,6 +226,7 @@ export default function Node({ node }: { node: Node }) {
     const targetPortId = (port.closest('div[id^="port-"]') as HTMLElement).id;
     const { portPlacement: targetPortPlacement } = parsePortId(targetPortId);
 
+    // TODO: I need to check if the edge already exists
     const doesEdgeExist = false;
 
     updateConnectionLine(null);

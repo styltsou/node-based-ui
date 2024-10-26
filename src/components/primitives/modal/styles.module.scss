@@ -1,0 +1,56 @@
+.wrapper {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: var(--z-index-modal);
+
+	.overlay {
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.3);
+		backdrop-filter: blur(5px);
+	}
+
+	.modal {
+		position: absolute;
+		left: 0;
+		right: 0;
+		margin: auto;
+		width: min-content;
+		height: min-content;
+		background-color: var(--color-foreground);
+		border: 1px solid var(--color-border);
+		border-radius: 0.2rem;
+		padding: 1rem;
+
+		&.top {
+			top: 0;
+			margin-top: 2rem;
+		}
+
+		&.center {
+			top: 0;
+			bottom: 0;
+		}
+
+		&.bottom {
+			bottom: 0;
+			margin-bottom: 2rem;
+		}
+
+		.closeButton {
+			position: absolute;
+			top: 0rem;
+			right: 0rem;
+			padding: 0.4rem;
+			border-radius: 0 0.2rem 0 0.2rem;
+			transition: background-color 0.1s ease-in-out;
+
+			&:hover {
+				background-color: rgba(var(--color-primary-rgb), 0.7);
+			}
+		}
+	}
+}

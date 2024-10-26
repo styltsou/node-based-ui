@@ -6,13 +6,12 @@ import {
   IconCopy,
   IconCopyCheck,
 } from '@tabler/icons-react';
-import styles from './index.module.scss';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+
+import { Node } from '../../../types';
 import useBoardStore from '../../../store';
-import {
-  Node,
-  // EdgeType
-} from '../../../types';
+
+import styles from './styles.module.scss';
 
 const variants: Variants = {
   initial: {
