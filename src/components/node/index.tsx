@@ -13,10 +13,10 @@ import Port from './port';
 
 import useBoardStore from '../../store';
 import cn from '../../utils/cn';
-import getAlignmentGuides from '../../utils/get-alignment-guides';
-import getPortPosition from '../../utils/port/get-port-position';
+import getNodePositionByPort from '../../utils/node/get-node-position-by-port';
 import parsePortId from '../../utils/port/parse-port-id';
-// import { PORT_SIZE } from '../../constants';
+import getAlignmentGuides from '../../utils/get-alignment-guides';
+import { MIN_NODE_WIDTH, MIN_NODE_HEIGHT } from '../../constants';
 
 import styles from './styles.module.scss';
 
@@ -59,16 +59,19 @@ function LockIndicator({ isVisible }: { isVisible: boolean }) {
 export default function Node({ node }: { node: Node }) {
   const nodeRef = useRef<HTMLDivElement>(null);
 
+  const canvasPosition = useBoardStore(s => s.position);
+  const isCanvasInteractive = useBoardStore(s => s.isInteractive);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
+
   const nodes = useBoardStore(s => s.nodes);
   const updateNodeSize = useBoardStore(s => s.updateNodeSize);
   const updateNodePosition = useBoardStore(s => s.updateNodePosition);
   const addEdge = useBoardStore(s => s.addEdge);
 
-  const updateConnectionLine = useBoardStore(s => s.updateConnectionLine);
+  const globalEdgeType = useBoardStore(s => s.globalEdgeType);
+  const lastAssignedEdgeType = useBoardStore(s => s.lastAssignedEdgeType);
 
-  const canvasPosition = useBoardStore(s => s.position);
-  const isCanvasInteractive = useBoardStore(s => s.isInteractive);
+  const updateConnectionLine = useBoardStore(s => s.updateConnectionLine);
 
   const alignmentGuides = useBoardStore(s => s.alignmentGuides);
   const setAlignmentGuides = useBoardStore(s => s.setAlignmentGuides);
@@ -138,35 +141,66 @@ export default function Node({ node }: { node: Node }) {
     // ! This know works only for dragging from source to tagret node
     // TODO: Need to know if sink or source is being dragged
     // TODO: See if I can compute the position from the event
-    const portPosition = getPortPosition(node, portPlacement);
+    // const portPosition = getPortPosition(node, portPlacement);
 
     e.dataTransfer.setData('text/plain', portId);
 
+    const targetNode: Node = {
+      id: '',
+      type: '',
+      isLocked: false,
+      size: { width: MIN_NODE_WIDTH, height: MIN_NODE_HEIGHT },
+      ports: [],
+      position: {
+        x: e.clientX - canvasPosition.x,
+        y: e.clientY - canvasPosition.y,
+      },
+    };
+
     updateConnectionLine({
-      sourcePort: {
-        placement: portPlacement,
-        position: portPosition,
-      },
-      targetPort: {
-        placement: PortPlacement.LEFT,
-        position: {
-          x: e.clientX - canvasPosition.x,
-          y: e.clientY - canvasPosition.y,
-        },
-      },
+      sourceNode: node,
+      sourcePortPlacement: portPlacement,
+      targetNode,
+      targetPortPlacement: PortPlacement.LEFT,
     });
   };
 
   // TODO: Here is the difficult part about the snapping logic
   const handleDragPort = (e: React.DragEvent<HTMLDivElement>) => {
+    // Lets assume that we have an imaginary target node positioned
+    // in a way so its port matches the mouse position
+
+    const targetNodeSize: Node['size'] = {
+      width: MIN_NODE_WIDTH,
+      height: MIN_NODE_HEIGHT,
+    };
+
+    const targetNodePortPlacement = PortPlacement.LEFT;
+
+    const targetPortPosition = {
+      x: e.clientX - canvasPosition.x,
+      y: e.clientY - canvasPosition.y,
+    };
+
+    const targetNodePosition = getNodePositionByPort(
+      targetNodeSize,
+      targetPortPosition,
+      targetNodePortPlacement
+    );
+
+    const targetNode: Node = {
+      id: '',
+      type: '',
+      isLocked: false,
+      size: targetNodeSize,
+      ports: [],
+      position: targetNodePosition,
+    };
+
+    // TODO: Here we can caclulate a new port placement depending on the target's proximity to a node poty
     updateConnectionLine({
-      targetPort: {
-        placement: PortPlacement.LEFT,
-        position: {
-          x: e.clientX - canvasPosition.x,
-          y: e.clientY - canvasPosition.y,
-        },
-      },
+      targetNode,
+      targetPortPlacement: targetNodePortPlacement,
     });
   };
 
@@ -178,18 +212,17 @@ export default function Node({ node }: { node: Node }) {
     const portId = (e.target as HTMLElement).id;
     if (!portId) return;
 
-    const { portPlacement } = parsePortId(portId);
-    const portPosition = getPortPosition(node, portPlacement);
+    const { portPlacement, nodeId } = parsePortId(portId);
 
-    // When the first drag over occurs, I need to find a way to seemingly connect the edge
-    // end permit the connection line from keep getting udpate. then on drop the edge gets created
+    const connectionLine = useBoardStore.getState().connectionLine;
 
-    updateConnectionLine({
-      targetPort: {
-        placement: portPlacement,
-        position: portPosition,
-      },
-    });
+    // Only update if this is not the source node
+    if (connectionLine && nodeId !== connectionLine.sourceNode?.id) {
+      updateConnectionLine({
+        targetNode: node,
+        targetPortPlacement: portPlacement,
+      });
+    }
   };
 
   const handleDragPortEnd = () => {
@@ -208,7 +241,6 @@ export default function Node({ node }: { node: Node }) {
 
     const doesEdgeExist = false;
 
-    // setIsAddingEdge(false);
     updateConnectionLine(null);
     if (!sourceNodeId || !node.id || doesEdgeExist) return;
 
@@ -218,7 +250,7 @@ export default function Node({ node }: { node: Node }) {
       target: node.id,
       sourcePortPlacement,
       targetPortPlacement,
-      type: EdgeType.Straight,
+      type: globalEdgeType || lastAssignedEdgeType || EdgeType.Straight,
     });
 
     saveLocalState();

@@ -98,6 +98,7 @@ const ToolBar = forwardRef<
   const setEdgeVisualizationId = useEdgeVisualizationStore(
     s => s.setSelectedEdgeId
   );
+  const setLastAssignedEdgeType = useBoardStore(s => s.setLastAssignedEdgeType);
 
   const [areEdgeOptionsOpen, setAreEdgeOptionsOpen] = useState(false);
 
@@ -116,6 +117,7 @@ const ToolBar = forwardRef<
 
   const handleSetEdgeType = (type: EdgeType) => {
     setEdgeType(edge.id, type);
+    setLastAssignedEdgeType(type);
     saveLocalState();
     setAreEdgeOptionsOpen(false);
   };

@@ -91,12 +91,14 @@ export default function ViewControls() {
     saveLocalState();
   };
 
+  // ! Keep  the zoom disabled for now, until I compenstate for that when dragging and connecting nodes
+
   return (
     <div className={styles.wrapper}>
-      <button onClick={handleZoomIn} disabled={zoom >= MAX_ZOOM}>
+      <button onClick={handleZoomIn} disabled={zoom >= MAX_ZOOM || true}>
         <IconPlus size={18} stroke={1.5} />
       </button>
-      <button onClick={handleZoomOut} disabled={zoom <= MIN_ZOOM}>
+      <button onClick={handleZoomOut} disabled={zoom <= MIN_ZOOM || true}>
         <IconMinus size={18} stroke={1.5} />
       </button>
       <button className={styles.iconButton} onClick={handleFitInView}>

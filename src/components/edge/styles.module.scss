@@ -18,13 +18,14 @@
  	}
 
  	.hoverPath {
- 		fill: none;
- 		stroke: transparent;
- 		stroke-width: 15px;
- 		pointer-events: all;
+ 		fill: transparent;
+ 		stroke-width: 20px;
+ 		pointer-events: stroke;
  		z-index: 100;
+ 		stroke-linecap: round;
+ 		stroke-linejoin: round;
 
- 		&:hover~.path {
+ 		&:hover~path {
  			stroke: var(--color-primary);
  		}
  	}
@@ -37,7 +38,6 @@
  		pointer-events: none;
  		transition: all 0.1s ease-in-out;
 
- 		// &:hover,
  		&.highlighted {
  			stroke: var(--color-primary);
  		}

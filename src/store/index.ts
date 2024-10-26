@@ -32,6 +32,7 @@ interface CanvasState {
   edges: Edge[];
   globalEdgeType: EdgeType | null;
   connectionLine: ConnectionLine | null;
+  lastAssignedEdgeType: EdgeType | null;
   alignmentGuides: AlignmentGuide[];
   nodeGroups: NodeGroup[];
 }
@@ -57,9 +58,8 @@ interface CanvasActions {
   deleteEdge: (id: string) => void;
   setEdgeType: (id: string, type: EdgeType) => void;
   setGlobalEdgeType: (edgeType: EdgeType | null) => void;
-  updateConnectionLine: (
-    connectionLine: Partial<ConnectionLine> | null
-  ) => void;
+  updateConnectionLine: (partialConnectionLine: ConnectionLine | null) => void;
+  setLastAssignedEdgeType: (edgeType: EdgeType | null) => void;
   setAlignmentGuides: (guides: AlignmentGuide[]) => void;
   createNodeGroup: (nodeGroup: NodeGroup) => void;
   updateNodeGroup: (id: string, nodeGroup: NodeGroup) => void;
@@ -80,6 +80,7 @@ const initialState: Omit<CanvasState, 'alignmentGuides' | 'connectionLine'> = {
   copiedNode: null,
   edges: [],
   globalEdgeType: null,
+  lastAssignedEdgeType: null,
   nodeGroups: [],
 };
 
@@ -217,34 +218,14 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
 
   setGlobalEdgeType: edgeType => set({ globalEdgeType: edgeType }),
 
-  // TODO: Make this action more robust efficient
-  updateConnectionLine: partialConnectionLine =>
+  updateConnectionLine: connectionLine =>
     set(state => ({
-      connectionLine: partialConnectionLine
-        ? {
-            type: state.connectionLine?.type || EdgeType.Straight,
-            sourcePort: {
-              position: state.connectionLine?.sourcePort?.position || {
-                x: 0,
-                y: 0,
-              },
-              placement:
-                state.connectionLine?.sourcePort?.placement ||
-                PortPlacement.RIGHT,
-            },
-            targetPort: {
-              position: state.connectionLine?.targetPort?.position || {
-                x: 0,
-                y: 0,
-              },
-              placement:
-                state.connectionLine?.targetPort?.placement ||
-                PortPlacement.LEFT,
-            },
-            ...partialConnectionLine,
-          }
+      connectionLine: connectionLine
+        ? { ...state.connectionLine, ...connectionLine }
         : null,
     })),
+
+  setLastAssignedEdgeType: edgeType => set({ lastAssignedEdgeType: edgeType }),
 
   setAlignmentGuides: guides => set({ alignmentGuides: guides }),
 

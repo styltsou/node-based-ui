@@ -1,15 +1,9 @@
-import type { Point } from './Point';
-import { EdgeType } from './Edge';
+import type { Node } from './Node';
 import { PortPlacement } from './Port';
 
 export type ConnectionLine = {
-  type: EdgeType | EdgeType.Straight;
-  sourcePort: {
-    position: Point;
-    placement: PortPlacement;
-  };
-  targetPort: {
-    position: Point;
-    placement: PortPlacement;
-  };
+  sourceNode?: Node;
+  sourcePortPlacement?: PortPlacement;
+  targetNode?: Node;
+  targetPortPlacement?: PortPlacement;
 };

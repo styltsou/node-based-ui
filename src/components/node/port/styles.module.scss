@@ -1,11 +1,12 @@
 .portWrapper {
-	padding: 15px;
+	padding: 20px;
 	background-color: transparent;
 	position: absolute;
 
 	transform: translate(-50%, -50%);
 	transition: border 0.1s ease-in-out;
-	// border: 1px dashed red; // ! Only for debugging purposes
+	// border: 1px dashed var(--color-primary); // ! Only for debugging purposes
+	// background-color: rgba(var(--color-primary-rgb), 0.2); // ! Only for debugging purposes
 
 	.port {
 		background-color: var(--color-foreground);

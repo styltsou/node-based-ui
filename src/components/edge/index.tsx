@@ -20,12 +20,12 @@ import cn from '../../utils/cn';
 export default function Edge({ edge }: { edge: Edge }) {
   const toolbarRef = useRef<HTMLDivElement>(null);
 
+  const canvasPosition = useBoardStore(s => s.position);
   const nodes = useBoardStore(s => s.nodes);
   const globalEdgeType = useBoardStore(s => s.globalEdgeType);
 
+  const [isHighlighted, setIsHighlighted] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState<Point | null>(null);
-
-  const [isEdgeHovered, setIsEdgeHovered] = useState(false);
 
   const sourceNode = nodes.find(node => node.id === edge.source);
   const targetNode = nodes.find(node => node.id === edge.target);
@@ -81,7 +81,10 @@ export default function Edge({ edge }: { edge: Edge }) {
   }
 
   const handleEdgeClick = (e: React.MouseEvent<SVGPathElement>) => {
-    setToolbarPosition({ x: e.clientX, y: e.clientY });
+    setToolbarPosition({
+      x: e.clientX - canvasPosition.x,
+      y: e.clientY - canvasPosition.y,
+    });
   };
 
   return (
@@ -90,15 +93,15 @@ export default function Edge({ edge }: { edge: Edge }) {
       <svg
         className={cn(
           styles.svg,
-          (isEdgeHovered || toolbarPosition) && styles.highlighted
+          (toolbarPosition || isHighlighted) && styles.highlighted
         )}
       >
         <path
           className={styles.hoverPath}
           d={path}
           onClick={handleEdgeClick}
-          onMouseEnter={() => setIsEdgeHovered(true)}
-          onMouseLeave={() => setIsEdgeHovered(false)}
+          onMouseEnter={() => setIsHighlighted(true)}
+          onMouseLeave={() => setIsHighlighted(false)}
         />
         <path
           className={cn(styles.path, toolbarPosition && styles.highlighted)}
