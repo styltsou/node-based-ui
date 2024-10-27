@@ -18,6 +18,43 @@ import {
   MIN_NODE_WIDTH,
 } from '../constants';
 
+// Define actions for the properties that support history
+type AddNodeAction = {
+  type: 'ADD_NODE';
+  payload: Node;
+};
+
+type DeleteNodeAction = {
+  type: 'DELETE_NODE';
+  payload: { node: Node; edges: Edge[] };
+};
+
+type AddEdgeAction = {
+  type: 'ADD_EDGE';
+  payload: Edge;
+};
+
+type DeleteEdgeAction = {
+  type: 'DELETE_EDGE';
+  payload: Edge;
+};
+
+type ChangeEdgeTypeAction = {
+  type: 'CHANGE_EDGE_TYPE';
+  payload: {
+    id: string;
+    oldType: EdgeType;
+    newType: EdgeType;
+  };
+};
+
+type HistoryAction =
+  | AddNodeAction
+  | DeleteNodeAction
+  | AddEdgeAction
+  | DeleteEdgeAction
+  | ChangeEdgeTypeAction;
+
 interface CanvasState {
   position: {
     x: number;
@@ -25,16 +62,18 @@ interface CanvasState {
   };
   zoom: number;
   isInteractive: boolean;
-  areVerticalGuidesActive: boolean;
-  areHorizontalGuidesActive: boolean;
   nodes: Node[];
-  copiedNode: Node | null;
   edges: Edge[];
   globalEdgeType: EdgeType | null;
   connectionLine: ConnectionLine | null;
   lastAssignedEdgeType: EdgeType | null;
-  alignmentGuides: AlignmentGuide[];
+  copiedNode: Node | null;
   nodeGroups: NodeGroup[];
+  alignmentGuides: AlignmentGuide[];
+  areHorizontalGuidesActive: boolean;
+  areVerticalGuidesActive: boolean;
+  undoStack: HistoryAction[];
+  redoStack: HistoryAction[];
 }
 
 interface CanvasActions {
@@ -56,7 +95,7 @@ interface CanvasActions {
   deleteNode: (id: string) => void;
   addEdge: (edge: Edge) => void;
   deleteEdge: (id: string) => void;
-  setEdgeType: (id: string, type: EdgeType) => void;
+  changeEdgeType: (id: string, type: EdgeType) => void;
   setGlobalEdgeType: (edgeType: EdgeType | null) => void;
   updateConnectionLine: (partialConnectionLine: ConnectionLine | null) => void;
   setLastAssignedEdgeType: (edgeType: EdgeType | null) => void;
@@ -64,13 +103,19 @@ interface CanvasActions {
   createNodeGroup: (nodeGroup: NodeGroup) => void;
   updateNodeGroup: (id: string, nodeGroup: NodeGroup) => void;
   deleteNodeGroup: (id: string) => void;
-  saveLocalState: () => void;
   importData: (data: z.infer<typeof ImportSchema>) => void;
+  saveLocalState: () => void;
+  pushToUndoStack: (action: HistoryAction) => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 const STORAGE_KEY = 'global-store';
 
-const initialState: Omit<CanvasState, 'alignmentGuides' | 'connectionLine'> = {
+const initialState: Omit<
+  CanvasState,
+  'alignmentGuides' | 'connectionLine' | 'undoStack' | 'redoStack'
+> = {
   position: { x: 0, y: 0 },
   zoom: 1,
   isInteractive: true,
@@ -84,13 +129,21 @@ const initialState: Omit<CanvasState, 'alignmentGuides' | 'connectionLine'> = {
   nodeGroups: [],
 };
 
-// TODO
+// TODO: Incorporate the pushToUndoStack action in the other actions
+// TODO: Central place for managing which state is persisted where (local, session, non-persisted)
+// TODO: fix the other stuff here regarding state
 // 1. I want to have more flexibility in which state is saved on local storage
 // 2. I also want to add support for storing certain state on session storage
-// 3. I want to have a single action for updating node data
 
-const hydrateState = (
-  initialState: Omit<CanvasState, 'alignmentGuides' | 'connectionLine'>
+const hydrateStateFromLocalStorage = (
+  initialState: Omit<
+    CanvasState,
+    | 'alignmentGuides'
+    | 'connectionLine'
+    | 'copiedNode'
+    | 'undoStack'
+    | 'redoStack'
+  >
 ) => {
   const localState = localStorage.getItem(STORAGE_KEY);
 
@@ -98,15 +151,83 @@ const hydrateState = (
     const parsedState = JSON.parse(localState);
     return parsedState;
   } else {
+    // TODO: Save only the necessary state on local storage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(initialState));
     return initialState;
   }
 };
 
+function performUndo(
+  state: CanvasState,
+  action: HistoryAction
+): Partial<CanvasState> {
+  switch (action.type) {
+    case 'ADD_NODE':
+      return {
+        nodes: state.nodes.filter(node => node.id !== action.payload.id),
+      };
+    case 'DELETE_NODE':
+      return {
+        nodes: [...state.nodes, action.payload.node],
+        edges: [...state.edges, ...action.payload.edges],
+      };
+    case 'ADD_EDGE':
+      return {
+        edges: state.edges.filter(edge => edge.id !== action.payload.id),
+      };
+    case 'DELETE_EDGE':
+      return { edges: [...state.edges, action.payload] };
+    case 'CHANGE_EDGE_TYPE':
+      return {
+        edges: state.edges.map(edge =>
+          edge.id === action.payload.id
+            ? { ...edge, type: action.payload.oldType }
+            : edge
+        ),
+      };
+  }
+}
+
+function performRedo(
+  state: CanvasState,
+  action: HistoryAction
+): Partial<CanvasState> {
+  switch (action.type) {
+    case 'ADD_NODE':
+      return { nodes: [...state.nodes, action.payload] };
+    case 'DELETE_NODE':
+      return {
+        nodes: state.nodes.filter(node => node.id !== action.payload.node.id),
+        edges: state.edges.filter(
+          edge =>
+            edge.source !== action.payload.node.id &&
+            edge.target !== action.payload.node.id
+        ),
+      };
+    case 'ADD_EDGE':
+      return { edges: [...state.edges, action.payload] };
+    case 'DELETE_EDGE':
+      return {
+        edges: state.edges.filter(edge => edge.id !== action.payload.id),
+      };
+    case 'CHANGE_EDGE_TYPE':
+      return {
+        edges: state.edges.map(edge =>
+          edge.id === action.payload.id
+            ? { ...edge, type: action.payload.newType }
+            : edge
+        ),
+      };
+  }
+}
+
 const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
-  ...hydrateState(initialState),
+  ...hydrateStateFromLocalStorage(initialState),
   alignmentGuides: [],
   connectionLine: null,
+  copiedNode: null,
+  undoStack: [],
+  redoStack: [],
 
   updatePosition: position => set({ position: position }),
 
@@ -149,6 +270,8 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
         PortPlacement.BOTTOM,
         PortPlacement.LEFT,
       ];
+
+    get().pushToUndoStack({ type: 'ADD_NODE', payload: node });
 
     set(state => ({ nodes: [...state.nodes, node] }));
 
@@ -198,28 +321,59 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
     }
   },
 
-  deleteNode: id =>
-    // We also need to delete the edges connected to the node that gets deleted
-    set(state => ({
-      nodes: state.nodes.filter(node => node.id !== id),
-      edges: state.edges.filter(
-        edge => edge.source !== id && edge.target !== id
-      ),
-    })),
+  deleteNode: id => {
+    const nodeToDelete = get().nodes.find(node => node.id === id);
 
-  addEdge: edge => set(state => ({ edges: [...state.edges, edge] })),
+    if (nodeToDelete) {
+      const edgesToDelete = get().edges.filter(
+        edge => edge.source === id || edge.target === id
+      );
 
-  deleteEdge: id =>
-    set(state => ({
-      edges: state.edges.filter(edge => edge.id !== id),
-    })),
+      // We also need to delete the edges connected to the node that gets deleted
+      get().pushToUndoStack({
+        type: 'DELETE_NODE',
+        payload: { node: nodeToDelete, edges: edgesToDelete },
+      });
 
-  setEdgeType: (id, type) =>
-    set(state => ({
-      edges: state.edges.map(edge =>
-        edge.id === id ? { ...edge, type } : edge
-      ),
-    })),
+      set(state => ({
+        nodes: state.nodes.filter(node => node.id !== id),
+        edges: state.edges.filter(edge => !edgesToDelete.includes(edge)),
+      }));
+    }
+  },
+
+  addEdge: edge => {
+    get().pushToUndoStack({ type: 'ADD_EDGE', payload: edge });
+    set(state => ({ edges: [...state.edges, edge] }));
+  },
+
+  deleteEdge: id => {
+    const edgeToDelete = get().edges.find(edge => edge.id === id);
+
+    if (edgeToDelete) {
+      get().pushToUndoStack({ type: 'DELETE_EDGE', payload: edgeToDelete });
+      set(state => ({
+        edges: state.edges.filter(edge => edge.id !== id),
+      }));
+    }
+  },
+
+  changeEdgeType: (id, type) => {
+    const edgeToChange = get().edges.find(edge => edge.id === id);
+
+    if (edgeToChange) {
+      get().pushToUndoStack({
+        type: 'CHANGE_EDGE_TYPE',
+        payload: { id, oldType: edgeToChange.type, newType: type },
+      });
+
+      set(state => ({
+        edges: state.edges.map(edge =>
+          edge.id === id ? { ...edge, type } : edge
+        ),
+      }));
+    }
+  },
 
   setGlobalEdgeType: edgeType => set({ globalEdgeType: edgeType }),
 
@@ -249,10 +403,6 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
       nodeGroups: state.nodeGroups.filter(group => group.id !== id),
     })),
 
-  saveLocalState: () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(get()));
-  },
-
   importData: data => {
     set(state => ({
       ...state,
@@ -263,6 +413,48 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
     }));
 
     get().saveLocalState();
+  },
+
+  // TODO: Save only the necessary state on local storage
+  saveLocalState: () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(get()));
+  },
+
+  pushToUndoStack: action =>
+    set(state => ({ undoStack: [...state.undoStack, action] })),
+
+  undo: () => {
+    const { undoStack, redoStack } = get();
+    if (undoStack.length === 0) return;
+
+    const actionToUndo = undoStack.pop()!;
+    const newRedoStack = [...redoStack, actionToUndo];
+
+    set(state => {
+      const newState = performUndo(state, actionToUndo);
+      return {
+        ...newState,
+        undoStack: undoStack,
+        redoStack: newRedoStack,
+      };
+    });
+  },
+
+  redo: () => {
+    const { undoStack, redoStack } = get();
+    if (redoStack.length === 0) return;
+
+    const actionToRedo = redoStack.pop()!;
+    const newUndoStack = [...undoStack, actionToRedo];
+
+    set(state => {
+      const newState = performRedo(state, actionToRedo);
+      return {
+        ...newState,
+        undoStack: newUndoStack,
+        redoStack: redoStack,
+      };
+    });
   },
 }));
 

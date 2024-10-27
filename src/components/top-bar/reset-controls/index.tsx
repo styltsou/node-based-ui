@@ -18,6 +18,11 @@ export default function ViewControls() {
   const resetZoom = useBoardStore(s => s.resetZoom);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
 
+  const undoStack = useBoardStore(s => s.undoStack);
+  const redoStack = useBoardStore(s => s.redoStack);
+  const undo = useBoardStore(s => s.undo);
+  const redo = useBoardStore(s => s.redo);
+
   const isEdgeVisualizationActive = !!useEdgeVisualizationStore(
     s => s.selectedEdgeId
   );
@@ -30,9 +35,6 @@ export default function ViewControls() {
     return canvasZoom !== 1;
   }, [canvasZoom]);
 
-  const canUndo = false;
-  const canRedo = false;
-
   const handleResetPanning = () => {
     resetPanning();
     saveLocalState();
@@ -43,10 +45,6 @@ export default function ViewControls() {
     saveLocalState();
   };
 
-  const handleUndo = () => {};
-
-  const handleRedo = () => {};
-
   return (
     <div className={styles.wrapper}>
       <button disabled={!isPanned} onClick={handleResetPanning}>
@@ -56,14 +54,14 @@ export default function ViewControls() {
         <IconZoomReset size={18} stroke={1.5} />
       </button>
       <button
-        disabled={!canUndo || isEdgeVisualizationActive}
-        onClick={handleUndo}
+        disabled={!undoStack.length || isEdgeVisualizationActive}
+        onClick={undo}
       >
         <IconArrowBackUp size={18} stroke={1.5} />
       </button>
       <button
-        disabled={!canRedo || isEdgeVisualizationActive}
-        onClick={handleRedo}
+        disabled={!redoStack.length || isEdgeVisualizationActive}
+        onClick={redo}
       >
         <IconArrowForwardUp size={18} stroke={1.5} />
       </button>
