@@ -94,7 +94,7 @@ const ToolBar = forwardRef<
 >(({ edge, position }, ref) => {
   const deleteEdge = useBoardStore(s => s.deleteEdge);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
-  const setEdgeType = useBoardStore(s => s.setEdgeType);
+  const changeEdgeType = useBoardStore(s => s.changeEdgeType);
   const setEdgeVisualizationId = useEdgeVisualizationStore(
     s => s.setSelectedEdgeId
   );
@@ -116,7 +116,7 @@ const ToolBar = forwardRef<
   };
 
   const handleSetEdgeType = (type: EdgeType) => {
-    setEdgeType(edge.id, type);
+    changeEdgeType(edge.id, type);
     setLastAssignedEdgeType(type);
     saveLocalState();
     setAreEdgeOptionsOpen(false);
