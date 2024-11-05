@@ -1,0 +1,44 @@
+.tooltip {
+	background-color: var(--color-node-toolbar);
+	border-radius: 5px;
+	color: white;
+
+	&.sm {}
+
+	&.md {}
+
+	&.lg {}
+
+	.arrow {
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		background: inherit;
+		transform: rotate(45deg);
+		border-radius: 4px;
+
+		&.top {
+			bottom: -5px;
+			left: 50%;
+			margin-left: -5px;
+		}
+
+		&.right {
+			left: -5px;
+			top: 50%;
+			margin-top: -5px;
+		}
+
+		&.bottom {
+			top: -5px;
+			left: 50%;
+			margin-left: -5px;
+		}
+
+		&.left {
+			right: -5px;
+			top: 50%;
+			margin-top: -5px;
+		}
+	}
+}

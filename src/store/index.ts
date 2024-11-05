@@ -62,21 +62,25 @@ interface CanvasState {
   };
   zoom: number;
   isInteractive: boolean;
+
   nodes: Node[];
   edges: Edge[];
   globalEdgeType: EdgeType | null;
-  connectionLine: ConnectionLine | null;
   lastAssignedEdgeType: EdgeType | null;
+  connectionLine: ConnectionLine | null;
   copiedNode: Node | null;
   nodeGroups: NodeGroup[];
+
   alignmentGuides: AlignmentGuide[];
   areHorizontalGuidesActive: boolean;
   areVerticalGuidesActive: boolean;
+
   undoStack: HistoryAction[];
   redoStack: HistoryAction[];
 }
 
 interface CanvasActions {
+  createUndoableAction: () => void;
   updatePosition: (position: CanvasState['position']) => void;
   resetPanning: () => void;
   updateZoom: (zoom: number) => void;
@@ -156,6 +160,10 @@ const hydrateStateFromLocalStorage = (
     return initialState;
   }
 };
+
+// const hydrateStateFromSessionStorage = () => {
+//   const sessionState = sessionStorage.getItem(STORAGE_KEY);
+// };
 
 function performUndo(
   state: CanvasState,

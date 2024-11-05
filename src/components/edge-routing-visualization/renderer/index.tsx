@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import styles from './styles.module.scss';
@@ -155,47 +155,53 @@ function PortSVG({ port }: { port: Point }) {
 export default function EdgeRoutingRenderer() {
   const nodes = useBoardStore(s => s.nodes);
   const edges = useBoardStore(s => s.edges);
-
   const addNode = useBoardStore(s => s.addNode);
   const deleteNode = useBoardStore(s => s.deleteNode);
 
   const selectedEdgeId = useEdgeVisualizationStore(s => s.selectedEdgeId);
+  const showRulers = useEdgeVisualizationStore(s => s.showRulers);
+  const showGridBounds = useEdgeVisualizationStore(s => s.showGridBounds);
+  const showGridSlices = useEdgeVisualizationStore(s => s.showGridSlices);
+  const showConnectionPoints = useEdgeVisualizationStore(
+    s => s.showConnectionPoints
+  );
+  const showPossiblePaths = useEdgeVisualizationStore(s => s.showPossiblePaths);
+  const showStepEdge = useEdgeVisualizationStore(s => s.showStepEdge);
+  const showSmoothEdge = useEdgeVisualizationStore(s => s.showSmoothEdge);
 
-  const {
-    showRulers,
-    showGridBounds,
-    showGridSlices,
-    showConnectionPoints,
-    showPossiblePaths,
-    showStepEdge,
-    showSmoothEdge,
-  } = useEdgeVisualizationStore();
+  const [nodeCopies] = useState(() => {
+    const edge = edges.find(e => e.id === selectedEdgeId)!;
+    const sourceNode = nodes.find(n => n.id === edge.source)!;
+    const targetNode = nodes.find(n => n.id === edge.target)!;
+
+    return {
+      source: { ...sourceNode, id: uuidv4() },
+      target: { ...targetNode, id: uuidv4() },
+    };
+  });
+
+  useEffect(() => {
+    addNode(nodeCopies.source);
+    addNode(nodeCopies.target);
+
+    return () => {
+      deleteNode(nodeCopies.source.id);
+      deleteNode(nodeCopies.target.id);
+    };
+  }, []);
 
   const edge = edges.find(e => e.id === selectedEdgeId)!;
 
-  const sourceNode = nodes.find(n => n.id === edge.source)!;
-  const targetNode = nodes.find(n => n.id === edge.target)!;
-
-  // 1. Create copies of the nodes
-  const sourceNodeCopy = { ...sourceNode, id: uuidv4() };
-  const targetNodeCopy = { ...targetNode, id: uuidv4() };
-
-  // 4. Push the nodes and edge in global state
-  addNode(sourceNodeCopy);
-  addNode(targetNodeCopy);
-
-  // On renderer unmount, remove the copies from global state
-
   const rulers = getRulerLines({
-    sourceNode: sourceNodeCopy,
+    sourceNode: nodeCopies.source,
     sourcePortPlacement: edge.sourcePortPlacement,
-    targetNode: targetNodeCopy,
+    targetNode: nodeCopies.target,
     targetPortPlacement: edge.targetPortPlacement,
   });
 
   const gridBounds = getGridBounds({
-    sourceNode: sourceNodeCopy,
-    targetNode: targetNodeCopy,
+    sourceNode: nodeCopies.source,
+    targetNode: nodeCopies.target,
   });
 
   const gridSlices = getGridSlices({
@@ -204,22 +210,28 @@ export default function EdgeRoutingRenderer() {
   });
 
   let connectionPoints = getConnectionPoints({
-    sourceNode: sourceNodeCopy,
-    targetNode: targetNodeCopy,
+    sourceNode: nodeCopies.source,
+    targetNode: nodeCopies.target,
     slices: gridSlices,
     gridBounds,
   });
 
-  const sourcePort = getPortPosition(sourceNodeCopy, edge.sourcePortPlacement);
-  const targetPort = getPortPosition(targetNodeCopy, edge.targetPortPlacement);
+  const sourcePort = getPortPosition(
+    nodeCopies.source,
+    edge.sourcePortPlacement
+  );
+  const targetPort = getPortPosition(
+    nodeCopies.target,
+    edge.targetPortPlacement
+  );
 
   connectionPoints = [sourcePort, ...connectionPoints, targetPort];
 
   const graph = getOrthogonalGraph(
     connectionPoints,
-    sourceNodeCopy,
+    nodeCopies.source,
     edge.sourcePortPlacement,
-    targetNodeCopy,
+    nodeCopies.target,
     edge.targetPortPlacement
   );
 
@@ -227,24 +239,15 @@ export default function EdgeRoutingRenderer() {
 
   const smoothStepRadius =
     Math.min(
-      sourceNode.size.width,
-      sourceNode.size.height,
-      targetNode.size.width,
-      targetNode.size.height
+      nodeCopies.source.size.width,
+      nodeCopies.source.size.height,
+      nodeCopies.target.size.width,
+      nodeCopies.target.size.height
     ) / CURVATURE_FACTOR;
 
   const svgPath = showSmoothEdge
     ? pathToSmoothSvg(path, smoothStepRadius)
     : pathToSvg(path);
-
-  useEffect(() => {
-    return () => {
-      console.log('component unmounting');
-      deleteNode(sourceNodeCopy.id);
-      deleteNode(targetNodeCopy.id);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceNodeCopy.id, targetNodeCopy.id]);
 
   return (
     <div className={styles.orthogonalRoutingRender}>
@@ -256,8 +259,8 @@ export default function EdgeRoutingRenderer() {
       {showStepEdge && <StepEdge path={svgPath} />}
 
       <div className={styles.nodes}>
-        <Node node={sourceNode} />
-        <Node node={targetNode} />
+        <Node node={nodeCopies.source} />
+        <Node node={nodeCopies.target} />
       </div>
 
       <PortSVG port={sourcePort} />
