@@ -188,6 +188,7 @@ export default function EdgeRoutingRenderer() {
       deleteNode(nodeCopies.source.id);
       deleteNode(nodeCopies.target.id);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const edge = edges.find(e => e.id === selectedEdgeId)!;

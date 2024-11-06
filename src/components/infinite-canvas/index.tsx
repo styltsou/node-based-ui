@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import styles from './styles.module.scss';
 
 import { Point } from '../../types';
@@ -17,6 +17,8 @@ import { useKeybindings } from '../../hooks/use-keybindings';
 import { useCustomZoom } from '../../hooks/use-custom-zoom';
 import { keyboardKeys } from '../../constants';
 import cn from '../../utils/cn';
+import getVisibleNodes from '../../utils/get-visible-nodes';
+import getVisibleEdges from '../../utils/get-visible-edges';
 
 import EdgeRoutingRenderer from '../edge-routing-visualization/renderer';
 
@@ -26,7 +28,11 @@ export default function InfiniteCanvas() {
   const canvasZoom = useBoardStore(s => s.zoom);
   const updateZoom = useBoardStore(s => s.updateZoom);
   const nodes = useBoardStore(s => s.nodes);
+  const renderedNodes = useBoardStore(s => s.renderedNodes);
+  const setRenderedNodes = useBoardStore(s => s.setRenderedNodes);
   const edges = useBoardStore(s => s.edges);
+  const renderedEdges = useBoardStore(s => s.renderedEdges);
+  const setRenderedEdges = useBoardStore(s => s.setRenderedEdges);
   // const isCanvasInteractive = useBoardStore(s => s.isInteractive);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
 
@@ -107,6 +113,16 @@ export default function InfiniteCanvas() {
     [canvasPosition.x, canvasPosition.y, canvasZoom]
   );
 
+  useEffect(() => {
+    const nodesInViewport = getVisibleNodes(nodes, canvasPosition);
+    const edgesInViewport = getVisibleEdges(edges, nodes, canvasPosition);
+
+    setRenderedNodes(nodesInViewport);
+    setRenderedEdges(edgesInViewport);
+    //TODO: calculate new nodes that should be rendered
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, edges, canvasPosition, canvasZoom]);
+
   return (
     <CanvasContextMenu>
       <main
@@ -133,11 +149,11 @@ export default function InfiniteCanvas() {
             <EdgeRoutingRenderer />
           ) : (
             <>
-              {nodes.map(node => (
+              {renderedNodes?.map(node => (
                 <Node key={node.id} node={node} />
               ))}
 
-              {edges.map(edge => (
+              {renderedEdges?.map(edge => (
                 <Edge key={edge.id} edge={edge} />
               ))}
               <ConnectionLine />

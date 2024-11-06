@@ -64,7 +64,9 @@ interface CanvasState {
   isInteractive: boolean;
 
   nodes: Node[];
+  renderedNodes: Node[];
   edges: Edge[];
+  renderedEdges: Edge[];
   globalEdgeType: EdgeType | null;
   lastAssignedEdgeType: EdgeType | null;
   connectionLine: ConnectionLine | null;
@@ -91,6 +93,7 @@ interface CanvasActions {
   toggleVerticalGuides: () => void;
   toggleHorizontalGuides: () => void;
   addNode: (node: Node) => void;
+  setRenderedNodes: (nodes: Node[]) => void;
   updateNodePosition: (id: string, position: Node['position']) => void;
   updateNodeSize: (id: string, size: Node['size']) => void;
   toggleNodeLock: (id: string) => void;
@@ -98,6 +101,7 @@ interface CanvasActions {
   pasteNode: (position: Node['position']) => void;
   deleteNode: (id: string) => void;
   addEdge: (edge: Edge) => void;
+  setRenderedEdges: (edges: Edge[]) => void;
   deleteEdge: (id: string) => void;
   changeEdgeType: (id: string, type: EdgeType) => void;
   setGlobalEdgeType: (edgeType: EdgeType | null) => void;
@@ -126,8 +130,10 @@ const initialState: Omit<
   areVerticalGuidesActive: false,
   areHorizontalGuidesActive: false,
   nodes: [],
+  renderedNodes: [],
   copiedNode: null,
   edges: [],
+  renderedEdges: [],
   globalEdgeType: null,
   lastAssignedEdgeType: null,
   nodeGroups: [],
@@ -285,6 +291,9 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
 
     localStorage.setItem('global-store', JSON.stringify(get()));
   },
+
+  setRenderedNodes: nodes => set({ renderedNodes: nodes }),
+  setRenderedEdges: edges => set({ renderedEdges: edges }),
 
   updateNodePosition: (id, position) =>
     set(state => ({
