@@ -15,11 +15,12 @@
 	}
 
 	&:hover,
-	&:focus {
+	&:focus,
+	&.selected {
 		outline: none;
 		border-color: var(--color-primary);
 
-		& .handle {
+		& .port {
 			border-color: var(--color-primary);
 		}
 	}

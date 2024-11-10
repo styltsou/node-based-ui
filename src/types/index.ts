@@ -6,8 +6,10 @@ import { Point } from './Point';
 import { Line } from './Line';
 import { Port, PortPlacement } from './Port';
 import { ConnectionLine } from './ConnectionLine';
+import { SelectionBox } from './SelectionBox';
 
 export type {
+  SelectionBox,
   Node,
   Edge,
   AlignmentGuide,

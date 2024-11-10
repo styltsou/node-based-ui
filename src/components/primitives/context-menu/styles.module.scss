@@ -39,3 +39,34 @@
 		transform-origin: bottom right;
 	}
 }
+
+.menuButton {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding: 0.5rem 0.8rem;
+	font-family: inherit;
+	font-size: 15px;
+	color: rgba(255, 255, 255, 0.87);
+	background-color: var(--color-foreground);
+	border: none;
+	margin: 0;
+	cursor: pointer;
+	transition: all 0.15s ease-in-out;
+
+	&:hover {
+		background-color: var(--color-primary);
+		color: #ffffff;
+	}
+
+	&:disabled {
+		cursor: auto;
+		color: rgba(255, 255, 255, 0.40);
+
+		&:hover {
+			background-color: var(--color-foreground);
+			color: rgba(255, 255, 255, 0.40);
+		}
+	}
+}

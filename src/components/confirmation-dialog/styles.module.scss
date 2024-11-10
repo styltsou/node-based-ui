@@ -1,0 +1,45 @@
+.confirmationModal {
+	min-width: 25rem;
+	max-width: 100%;
+	// padding: 1.5rem;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+
+	p {
+		text-align: center;
+		text-wrap: balance;
+		line-height: 1.5;
+	}
+}
+
+.actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+
+	button {
+		position: relative;
+		padding: 0.5rem 1rem;
+		border-radius: 0.25rem;
+		font-size: 14px;
+		font-weight: 600;
+		transition: filter 0.1s ease-in-out;
+
+		&:hover {
+			filter: brightness(1.25);
+		}
+
+		&:first-child {
+			background: var(--color-canvas);
+		}
+
+		&:last-child {
+			background: var(--color-danger);
+			color: white;
+		}
+	}
+}

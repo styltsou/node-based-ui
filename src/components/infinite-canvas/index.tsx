@@ -4,6 +4,7 @@ import styles from './styles.module.scss';
 import { Point } from '../../types';
 import Node from '../node';
 import Edge from '../edge';
+import NodeGroup from '../node-group';
 import ConnectionLine from '../connection-line';
 import Background from '../background';
 import AlignmentGuides from '../alignment-guides';
@@ -33,6 +34,7 @@ export default function InfiniteCanvas() {
   const edges = useBoardStore(s => s.edges);
   const renderedEdges = useBoardStore(s => s.renderedEdges);
   const setRenderedEdges = useBoardStore(s => s.setRenderedEdges);
+  const nodeGroups = useBoardStore(s => s.nodeGroups);
   // const isCanvasInteractive = useBoardStore(s => s.isInteractive);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
 
@@ -156,12 +158,15 @@ export default function InfiniteCanvas() {
               {renderedEdges?.map(edge => (
                 <Edge key={edge.id} edge={edge} />
               ))}
+              {nodeGroups?.map(nodeGroup => (
+                <NodeGroup key={nodeGroup.id} nodeGroup={nodeGroup} />
+              ))}
               <ConnectionLine />
               <AlignmentGuides />
-              <SelectionBox />
             </>
           )}
         </div>
+        <SelectionBox />
       </main>
     </CanvasContextMenu>
   );

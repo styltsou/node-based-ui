@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 
 import { v4 as uuidv4 } from 'uuid';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -80,7 +80,14 @@ export default function Node({ node }: { node: Node }) {
     s => s.areHorizontalGuidesActive
   );
 
-  const [isToolBarOpen, setIsToolbarOpen] = useState<boolean>(false);
+  const selectedNodeIds = useBoardStore(s => s.selectedNodeIds);
+
+  const isSelected = useMemo(
+    () => selectedNodeIds.includes(node.id),
+    [selectedNodeIds, node.id]
+  );
+
+  const [isToolbarOpen, setIsToolbarOpen] = useState<boolean>(false);
 
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [mouseOffset, setMouseOffset] = useState<Point>({ x: 0, y: 0 });
@@ -272,13 +279,17 @@ export default function Node({ node }: { node: Node }) {
       <div
         id={`node-${node.id}`}
         ref={nodeRef}
-        className={cn(styles.node, isDragging && styles.dragging)}
+        className={cn(
+          styles.node,
+          isDragging && styles.dragging,
+          (isSelected || isToolbarOpen) && styles.selected
+        )}
         onContextMenu={handleContextMenuClick}
         style={{
           transform: `translate(${node.position.x}px, ${node.position.y}px)`,
         }}
       >
-        <ToolBar node={node} isOpen={isToolBarOpen} />
+        <ToolBar node={node} isOpen={isToolbarOpen} />
         <LockIndicator isVisible={node.isLocked} />
         <div
           className={styles.contentWrapper}
@@ -292,6 +303,7 @@ export default function Node({ node }: { node: Node }) {
           <Port
             key={`port-${node.id}-${portPlacement}`}
             nodeId={node.id}
+            className={styles.port}
             placement={portPlacement}
             onDrag={handleDragPort}
             onDragStart={handleDragPortStart}

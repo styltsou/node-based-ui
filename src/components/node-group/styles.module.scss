@@ -2,9 +2,64 @@
 	position: absolute;
 	top: 0;
 	left: 0;
+	pointer-events: none;
 
-	.groupLabel {}
+	.groupLabel {
+		position: absolute;
+		top: 0;
+		right: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 0.2rem 0.2rem 0 0;
+		transform: translateY(-100%);
+		pointer-events: all;
+		user-select: none;
+		color: black;
 
-	.groupBox {}
+		&.darkColor {
+			color: white;
+		}
 
+		&>span {
+			padding: 0 0.3rem;
+			font-size: 14px;
+		}
+
+		.groupOptionsButton {
+			padding: 0.3rem;
+			border: none;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			transition: backdrop-filter 0.1s ease-in-out;
+
+			&:hover {
+				backdrop-filter: brightness(0.75);
+
+				&.darkColor {
+					backdrop-filter: brightness(1.35);
+				}
+			}
+		}
+	}
+
+	.groupBox {
+		width: 100%;
+		height: 100%;
+		background-color: transparent;
+		border-radius: 0.4rem 0 0.4rem 0.4rem;
+		border: 1px solid;
+	}
+}
+
+.popoverMenu {
+	&>button {
+		gap: 0.7rem;
+
+		&:hover {
+			background-color: var(--hover-bg-color);
+			color: var(--hover-text-color);
+		}
+	}
 }

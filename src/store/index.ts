@@ -29,6 +29,14 @@ type DeleteNodeAction = {
   payload: { node: Node; edges: Edge[] };
 };
 
+type DeleteNodesAction = {
+  type: 'DELETE_NODES';
+  payload: {
+    nodes: Node[];
+    edges: Edge[];
+  };
+};
+
 type AddEdgeAction = {
   type: 'ADD_EDGE';
   payload: Edge;
@@ -51,6 +59,7 @@ type ChangeEdgeTypeAction = {
 type HistoryAction =
   | AddNodeAction
   | DeleteNodeAction
+  | DeleteNodesAction
   | AddEdgeAction
   | DeleteEdgeAction
   | ChangeEdgeTypeAction;
@@ -65,6 +74,7 @@ interface CanvasState {
 
   nodes: Node[];
   renderedNodes: Node[];
+  selectedNodeIds: string[];
   edges: Edge[];
   renderedEdges: Edge[];
   globalEdgeType: EdgeType | null;
@@ -92,8 +102,10 @@ interface CanvasActions {
   toggleInteractivity: () => void;
   toggleVerticalGuides: () => void;
   toggleHorizontalGuides: () => void;
+  setNodes: (nodes: Node[]) => void;
   addNode: (node: Node) => void;
   setRenderedNodes: (nodes: Node[]) => void;
+  setSelectedNodeIds: (ids: string[]) => void;
   updateNodePosition: (id: string, position: Node['position']) => void;
   updateNodeSize: (id: string, size: Node['size']) => void;
   toggleNodeLock: (id: string) => void;
@@ -110,12 +122,13 @@ interface CanvasActions {
   setAlignmentGuides: (guides: AlignmentGuide[]) => void;
   createNodeGroup: (nodeGroup: NodeGroup) => void;
   updateNodeGroup: (id: string, nodeGroup: NodeGroup) => void;
-  deleteNodeGroup: (id: string) => void;
+  breakNodeGroup: (id: string) => void;
   importData: (data: z.infer<typeof ImportSchema>) => void;
   saveLocalState: () => void;
   pushToUndoStack: (action: HistoryAction) => void;
   undo: () => void;
   redo: () => void;
+  deleteNodes: (ids: string[]) => void;
 }
 
 const STORAGE_KEY = 'global-store';
@@ -131,6 +144,7 @@ const initialState: Omit<
   areHorizontalGuidesActive: false,
   nodes: [],
   renderedNodes: [],
+  selectedNodeIds: [],
   copiedNode: null,
   edges: [],
   renderedEdges: [],
@@ -199,6 +213,11 @@ function performUndo(
             : edge
         ),
       };
+    case 'DELETE_NODES':
+      return {
+        nodes: [...state.nodes, ...action.payload.nodes],
+        edges: [...state.edges, ...action.payload.edges],
+      };
   }
 }
 
@@ -232,6 +251,16 @@ function performRedo(
             : edge
         ),
       };
+    case 'DELETE_NODES': {
+      const nodeIds = action.payload.nodes.map(node => node.id);
+      return {
+        nodes: state.nodes.filter(node => !nodeIds.includes(node.id)),
+        edges: state.edges.filter(
+          edge =>
+            !nodeIds.includes(edge.source) && !nodeIds.includes(edge.target)
+        ),
+      };
+    }
   }
 }
 
@@ -276,6 +305,8 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
 
   resetZoom: () => set({ zoom: 1 }),
 
+  setNodes: nodes => set({ nodes }),
+
   addNode: node => {
     if (node.ports.length === 0)
       node.ports = [
@@ -294,6 +325,8 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
 
   setRenderedNodes: nodes => set({ renderedNodes: nodes }),
   setRenderedEdges: edges => set({ renderedEdges: edges }),
+
+  setSelectedNodeIds: ids => set({ selectedNodeIds: ids }),
 
   updateNodePosition: (id, position) =>
     set(state => ({
@@ -375,6 +408,32 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
     }
   },
 
+  deleteNodes: (ids: string[]) => {
+    const nodesToDelete = get().nodes.filter(node => ids.includes(node.id));
+
+    if (nodesToDelete.length > 0) {
+      // Find all edges connected to any of the nodes being deleted
+      const edgesToDelete = get().edges.filter(
+        edge => ids.includes(edge.source) || ids.includes(edge.target)
+      );
+
+      // Push to undo stack before deleting
+      get().pushToUndoStack({
+        type: 'DELETE_NODES',
+        payload: {
+          nodes: nodesToDelete,
+          edges: edgesToDelete,
+        },
+      });
+
+      // Update state
+      set(state => ({
+        nodes: state.nodes.filter(node => !ids.includes(node.id)),
+        edges: state.edges.filter(edge => !edgesToDelete.includes(edge)),
+      }));
+    }
+  },
+
   changeEdgeType: (id, type) => {
     const edgeToChange = get().edges.find(edge => edge.id === id);
 
@@ -415,7 +474,7 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
       ),
     })),
 
-  deleteNodeGroup: id =>
+  breakNodeGroup: id =>
     set(state => ({
       nodeGroups: state.nodeGroups.filter(group => group.id !== id),
     })),

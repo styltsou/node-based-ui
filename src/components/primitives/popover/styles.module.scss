@@ -1,0 +1,88 @@
+.popoverContent {
+	position: absolute;
+	z-index: 100;
+	background-color: var(--color-node-toolbar);
+	border-radius: 0.4rem;
+	padding: 0.2rem;
+	border: 1px solid;
+	border-color: var(--color-primary);
+	display: flex;
+	flex-direction: column;
+	width: max-content;
+
+	&>* {
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		padding: 0.45rem 0.55rem;
+		color: white;
+		font-size: 14px;
+		line-height: 1;
+		transition: 0.1s ease-in-out;
+
+		&:hover {
+			background-color: var(--color-node-toolbar-hover);
+		}
+
+		&:first-child {
+			border-radius: 0.3rem 0.3rem 0rem 0rem;
+		}
+
+		&:last-child {
+			border-radius: 0rem 0rem 0.3rem 0.3rem;
+		}
+	}
+
+	&[data-position='top'] {
+		bottom: 0;
+	}
+
+	&[data-position='left'] {
+		top: 0;
+		right: 0;
+	}
+
+	&[data-position='right'] {
+		top: 0;
+	}
+
+	// Triangle indicator
+	&::before {
+		content: '';
+		position: absolute;
+		width: 12px;
+		height: 12px;
+		border-bottom: 1px solid;
+		border-left: 1px solid;
+		border-color: inherit;
+		background-color: inherit;
+		border-bottom-left-radius: 0.2rem;
+		// clip the path because the indicator sits on top of the content
+		clip-path: polygon(1px 0, 100% calc(100% - 1px), 100% 100%, 0 100%, 0 0);
+	}
+
+	// Position the triangle based on popover position
+	&[data-position='top']::before {
+		bottom: -7px;
+		left: 50%;
+		transform: translateX(-50%) rotate(-45deg);
+	}
+
+	&[data-position='bottom']::before {
+		top: -7px;
+		left: 50%;
+		transform: translateX(-50%) rotate(135deg);
+	}
+
+	&[data-position='left']::before {
+		right: -7px;
+		top: 50%;
+		transform: translateY(-50%) rotate(-135deg);
+	}
+
+	&[data-position='right']::before {
+		left: -7px;
+		top: 50%;
+		transform: translateY(-50%) rotate(45deg);
+	}
+}

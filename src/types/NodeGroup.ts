@@ -9,6 +9,7 @@ export interface NodeGroup {
     width: number;
     height: number;
   };
-
+  nodeIds: string[];
   color: string;
+  isLocked: boolean;
 }

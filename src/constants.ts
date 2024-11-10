@@ -95,3 +95,7 @@ export const PORT_SIZE = 0.75;
 export const NODE_ALIGNMENT_THRESHOLD = 5;
 
 export const EXPORT_FILENAME_PREFIX = 'node-based-ui-export';
+
+export const COLORS = {
+  VIOLET: '#6e6ade',
+};

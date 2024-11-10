@@ -1,4 +1,10 @@
-import React, { createContext, useRef, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnClickOutside } from 'usehooks-ts';
 import cn from '../../../utils/cn';
@@ -11,30 +17,47 @@ type ViewportQuadrant =
   | 'top-right'
   | 'bottom-right';
 
+type Position = {
+  x: number;
+  y: number;
+};
+
 const animationVariants = {
   initial: { opacity: 0.5, scale: 0.9 },
   enter: { opacity: 1, scale: 1, transition: { duration: 0.1 } },
   exit: { opacity: 0.2, scale: 0.9, transition: { duration: 0.08 } },
 };
 
-export const ContextMenuContext = createContext<{
+type ContextMenuContextType = {
   isOpen: boolean;
-  position: { x: number; y: number };
-  open: (e: React.MouseEvent<HTMLElement>) => void;
+  position: Position;
+  open: (e: React.MouseEvent) => void;
   close: () => void;
-}>({
+};
+
+export const ContextMenuContext = createContext<ContextMenuContextType>({
   isOpen: false,
   position: { x: 0, y: 0 },
   open: () => {},
   close: () => {},
 });
 
-export const ContextMenu: React.FC<{
+type ContextMenuProps = {
   onOpen?: () => void;
   onClose?: () => void;
   content: React.ReactElement;
+  triggerRef?: React.RefObject<Element>;
   children: React.ReactNode;
-}> = ({ onOpen, onClose, content, children }) => {
+};
+
+export const ContextMenu: React.FC<ContextMenuProps> = ({
+  onOpen,
+  onClose,
+  content,
+  triggerRef,
+  children,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Keep a copy of them menu always mounted so I can caclulate its size
@@ -46,53 +69,61 @@ export const ContextMenu: React.FC<{
     width: 0,
     height: 0,
   });
-
-  // Menu position
-  const [position, setPosition] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
-
-  // Viewport quadrant where the menu was opened
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [viewportQuadrant, setViewportQuadrant] =
     useState<ViewportQuadrant>('top-left');
 
-  //TODO: Wrap function in a callback
-  const openContextMenu = (e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-    if (isOpen) return;
-    // Calculate the viewport quadrant that way in order to specify
-    // the appropriate transform orgin to the menu
-    const horizontalOrientation =
-      e.clientX <= window.innerWidth / 2 ? 'left' : 'right';
-    const verticalOrientation =
-      e.clientY <= window.innerHeight / 2 ? 'top' : 'bottom';
+  const openContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      if (triggerRef) {
+        if (e.target !== triggerRef.current) return;
+      }
 
-    setViewportQuadrant(`${verticalOrientation}-${horizontalOrientation}`);
+      e.preventDefault();
+      if (isOpen) return;
 
-    const menuOffset = {
-      x: horizontalOrientation === 'left' ? 0 : -menuSize.width,
-      y: verticalOrientation === 'top' ? 0 : -menuSize.height,
-    };
+      const horizontalOrientation =
+        e.clientX <= window.innerWidth / 2 ? 'left' : 'right';
+      const verticalOrientation =
+        e.clientY <= window.innerHeight / 2 ? 'top' : 'bottom';
 
-    setPosition({
-      x: e.clientX + menuOffset.x,
-      y: e.clientY + menuOffset.y,
-    });
+      setViewportQuadrant(
+        `${verticalOrientation}-${horizontalOrientation}` as ViewportQuadrant
+      );
 
-    onOpen?.();
-    setIsOpen(true);
-  };
+      const menuOffset = {
+        x: horizontalOrientation === 'left' ? 0 : -menuSize.width,
+        y: verticalOrientation === 'top' ? 0 : -menuSize.height,
+      };
 
-  // TODO: Wrap function in a callback
-  const closeContextMenu = () => {
+      setPosition({
+        x: e.clientX + menuOffset.x,
+        y: e.clientY + menuOffset.y,
+      });
+
+      onOpen?.();
+      setIsOpen(true);
+    },
+    [isOpen, menuSize, onOpen, triggerRef]
+  );
+
+  const closeContextMenu = useCallback(() => {
     if (!isOpen) return;
 
     onClose?.();
     setIsOpen(false);
-  };
+  }, [isOpen, onClose]);
 
-  // Close menu on Esc
+  // useEffect(() => {
+  //   const triggerElement = triggerRef?.current || containerRef.current;
+  //   if (!triggerElement) return;
+
+  //   window.addEventListener('contextmenu', openContextMenu);
+  //   return () => {
+  //     window.removeEventListener('contextmenu', openContextMenu);
+  //   };
+  // }, [triggerRef, openContextMenu]);
+
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -100,13 +131,12 @@ export const ContextMenu: React.FC<{
       }
     };
 
-    document.addEventListener('keydown', handleKeyPress);
+    window.addEventListener('keydown', handleKeyPress);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener('keydown', handleKeyPress);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [closeContextMenu]);
 
   useOnClickOutside(menuRef, closeContextMenu);
 
@@ -119,7 +149,7 @@ export const ContextMenu: React.FC<{
         close: closeContextMenu,
       }}
     >
-      <div onContextMenu={openContextMenu}>
+      <div ref={containerRef} onContextMenu={openContextMenu}>
         {children}
         <AnimatePresence mode="wait">
           {isOpen && (
@@ -140,3 +170,15 @@ export const ContextMenu: React.FC<{
     </ContextMenuContext.Provider>
   );
 };
+
+type MenuItemProps = {
+  onClick?: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+};
+
+export const MenuItem = ({ onClick, disabled, children }: MenuItemProps) => (
+  <button className={styles.menuButton} onClick={onClick} disabled={disabled}>
+    {children}
+  </button>
+);

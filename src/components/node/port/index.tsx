@@ -6,6 +6,7 @@ import { PORT_SIZE } from '../../../constants';
 interface PortProps {
   nodeId: string;
   placement: PortPlacement;
+  className?: string;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
@@ -16,6 +17,7 @@ interface PortProps {
 export default function Port({
   nodeId,
   placement,
+  className,
   onDragOver,
   onDrop,
   onDragStart,
@@ -35,7 +37,7 @@ export default function Port({
       onDrop={onDrop}
     >
       <div
-        className={styles.port}
+        className={cn(styles.port, className)}
         style={portStyles}
         onDragStart={onDragStart}
         onDrag={onDrag}
