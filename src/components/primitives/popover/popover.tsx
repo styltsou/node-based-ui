@@ -2,8 +2,10 @@ import { createContext, useContext, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnClickOutside } from 'usehooks-ts';
 
-import { getPopoverPosition } from './utils';
 import styles from './styles.module.scss';
+import { getPopoverPosition } from './utils';
+import { useKeybindings } from '../../../hooks/use-keybindings';
+import { keyboardKeys } from '../../../constants';
 
 import type {
   PopoverProps,
@@ -12,6 +14,7 @@ import type {
   PopoverContextType,
   PopoverComponent,
 } from './types';
+import Portal from '../Portal';
 
 const PopoverContext = createContext<PopoverContextType | null>(null);
 
@@ -55,32 +58,73 @@ function Content({ children, className, style }: PopoverContentProps) {
     if (isOpen) setIsOpen(false);
   });
 
-  const { x, y } = getPopoverPosition(triggerRef, position, offset);
+  useKeybindings([
+    {
+      cmd: [keyboardKeys.Escape],
+      callback: () => setIsOpen(false),
+    },
+  ]);
+
+  const { x, y } = getPopoverPosition(triggerRef, contentRef, position, offset);
 
   const variants = {
-    initial: { x, y, opacity: 0, scale: 0.95 },
-    animate: { x, y, opacity: 1, scale: 1 },
-    exit: { x, y, opacity: 0, scale: 0.95 },
+    initial: (position: PopoverProps['position']) => ({
+      x: position === 'right' ? x - 5 : position === 'left' ? x + 5 : x,
+      y: position === 'bottom' ? y - 5 : position === 'top' ? y + 5 : y,
+      opacity: 0,
+      scale: 0.97,
+    }),
+    animate: {
+      x,
+      y,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (position: PopoverProps['position']) => ({
+      x: position === 'right' ? x - 5 : position === 'left' ? x + 5 : x,
+      y: position === 'bottom' ? y - 5 : position === 'top' ? y + 5 : y,
+      opacity: 0,
+      scale: 0.97,
+    }),
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
+    <Portal containerId={`group-popover-portal`}>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="popover-content"
+            className={`${styles.popoverContent} ${className || ''}`}
+            data-position={position}
+            custom={position}
+            variants={variants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.1 }}
+            style={style}
+          >
+            {children}
+          </motion.div>
+        )}
+        <div
+          key="popover-content-hidden"
           ref={contentRef}
           className={`${styles.popoverContent} ${className || ''}`}
           data-position={position}
-          variants={variants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={{ duration: 0.1 }}
-          style={style}
+          style={{
+            ...style,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            visibility: 'hidden',
+            zIndex: -1000,
+          }}
         >
           {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </div>
+      </AnimatePresence>
+    </Portal>
   );
 }
 

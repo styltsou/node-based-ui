@@ -25,7 +25,7 @@ export default function ConnectionLine() {
 
   switch (edgeType) {
     case EdgeType.Straight:
-      path = getStraightEdgePath(
+      [path] = getStraightEdgePath(
         getPortPosition(
           connectionLine.sourceNode!,
           connectionLine.sourcePortPlacement!
@@ -37,7 +37,7 @@ export default function ConnectionLine() {
       );
       break;
     case EdgeType.Step:
-      path = getStepEdgePath({
+      [path] = getStepEdgePath({
         sourceNode: connectionLine.sourceNode!,
         sourcePortPlacement: connectionLine.sourcePortPlacement!,
         targetNode: connectionLine.targetNode!,
@@ -45,7 +45,7 @@ export default function ConnectionLine() {
       });
       break;
     case EdgeType.SmoothStep:
-      path = getSmoothstepEdgePath({
+      [path] = getSmoothstepEdgePath({
         sourceNode: connectionLine.sourceNode!,
         sourcePortPlacement: connectionLine.sourcePortPlacement!,
         targetNode: connectionLine.targetNode!,

@@ -1,7 +1,7 @@
 import type { Node, Point } from '../../types';
 import { PortPlacement } from '../../types/Port';
 import { getOrthogonalRoute } from './orthogonal-routing';
-
+import getLabelPosition from './orthogonal-routing/get-label-position';
 // exported to use for visualizing the path
 export function pathToSvg(points: Point[]): string {
   if (points.length < 2) {
@@ -36,7 +36,7 @@ export default function getStepEdgePath({
   sourcePortPlacement: PortPlacement;
   targetNode: Node;
   targetPortPlacement: PortPlacement;
-}): string {
+}): [path: string, labelX: number, labelY: number] {
   const path = getOrthogonalRoute({
     sourceNode,
     sourcePortPlacement,
@@ -44,5 +44,8 @@ export default function getStepEdgePath({
     targetPortPlacement,
   });
 
-  return pathToSvg(path);
+  const labelPosition = getLabelPosition(path);
+  const pathString = pathToSvg(path);
+
+  return [pathString, labelPosition.x, labelPosition.y];
 }

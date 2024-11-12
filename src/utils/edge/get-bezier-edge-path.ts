@@ -96,7 +96,7 @@ function getControlWithCurvature({
  * @param params.target - The target point
  * @param params.targetPlacement - The position of the target handle (default: PortPlacement.TOP)
  * @param params.curvature - The curvature of the bezier edge
- * @returns A path string you can use in an SVG, the labelX and labelY position (center of path) and offsetX, offsetY between source handle and label
+ * @returns A path string you can use in an SVG, the labelX and labelY position (center of path) and offsetX, offsetY between source port and label
  * @example
  *  const source = { x: 0, y: 20 };
     const target = { x: 150, y: 100 };

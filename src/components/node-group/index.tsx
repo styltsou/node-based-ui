@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
+  IconLock,
+  IconLockOpen,
   IconDotsVertical,
   IconPencil,
   IconMarqueeOff,
@@ -18,8 +21,50 @@ import getNodesBoundingBox from '../../utils/node-group/get-nodes-bounding-box';
 import cn from '../../utils/cn';
 import isDarkColor from '../../utils/is-dark-color';
 
+const LockIndicatorVariants = {
+  initial: { opacity: 0, scale: 0.8, y: '-100%' },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    y: '-100%',
+    transition: { duration: 0.05 },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.8,
+    y: '-100%',
+    transition: { duration: 0.05 },
+  },
+};
+
+const LockIndicator = ({
+  isLocked,
+  color,
+}: {
+  isLocked: boolean;
+  color: string;
+}) => {
+  return (
+    <AnimatePresence>
+      {isLocked && (
+        <motion.div
+          className={styles.lockIndicator}
+          style={{ color }}
+          variants={LockIndicatorVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+        >
+          <IconLock size={16} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export default function NodeGroup({ nodeGroup }: { nodeGroup: NodeGroup }) {
   const nodes = useBoardStore(s => s.nodes);
+  const toggleNodeGroupLock = useBoardStore(s => s.toggleNodeGroupLock);
   const breakNodeGroup = useBoardStore(s => s.breakNodeGroup);
   const deleteNodes = useBoardStore(s => s.deleteNodes);
   const saveLocalState = useBoardStore(s => s.saveLocalState);
@@ -30,6 +75,11 @@ export default function NodeGroup({ nodeGroup }: { nodeGroup: NodeGroup }) {
     () => isDarkColor(nodeGroup.color),
     [nodeGroup.color]
   );
+
+  const handleToggleLock = () => {
+    toggleNodeGroupLock(nodeGroup.id);
+    saveLocalState();
+  };
 
   const ungroupNodes = () => {
     breakNodeGroup(nodeGroup.id);
@@ -65,6 +115,7 @@ export default function NodeGroup({ nodeGroup }: { nodeGroup: NodeGroup }) {
         height: boundingBox.height,
       }}
     >
+      <LockIndicator isLocked={nodeGroup.isLocked} color={nodeGroup.color} />
       <div
         className={cn(styles.groupLabel, isGroupColorDark && styles.darkColor)}
         style={{ background: nodeGroup.color }}
@@ -102,6 +153,19 @@ export default function NodeGroup({ nodeGroup }: { nodeGroup: NodeGroup }) {
             <button onClick={ungroupNodes}>
               <IconMarqueeOff size={14} />
               Ungroup
+            </button>
+            <button onClick={handleToggleLock}>
+              {nodeGroup.isLocked ? (
+                <>
+                  <IconLockOpen size={14} />
+                  Unlock group
+                </>
+              ) : (
+                <>
+                  <IconLock size={14} />
+                  Lock group
+                </>
+              )}
             </button>
             <button>
               <IconPalette size={14} />

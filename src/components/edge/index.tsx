@@ -7,7 +7,6 @@ import { EdgeType } from '../../types';
 import Toolbar from './toolbar';
 
 import useBoardStore from '../../store';
-// import useEdgeVisualizationStore from '../../store/edgeVisualizationStore';
 
 import getPortPosition from '../../utils/port/get-port-position';
 
@@ -47,13 +46,18 @@ export default function Edge({ edge }: { edge: Edge }) {
   const edgeType = globalEdgeType || edge.type;
 
   let path: string = '';
+  let labelX: number = 0;
+  let labelY: number = 0;
 
   switch (edgeType) {
     case EdgeType.Straight:
-      path = getStraightEdgePath(sourcePortPosition, targetPortPosition);
+      [path, labelX, labelY] = getStraightEdgePath(
+        sourcePortPosition,
+        targetPortPosition
+      );
       break;
     case EdgeType.Step:
-      path = getStepEdgePath({
+      [path, labelX, labelY] = getStepEdgePath({
         sourceNode,
         sourcePortPlacement: edge.sourcePortPlacement,
         targetNode,
@@ -61,7 +65,7 @@ export default function Edge({ edge }: { edge: Edge }) {
       });
       break;
     case EdgeType.SmoothStep:
-      path = getSmoothStepEdgePath({
+      [path, labelX, labelY] = getSmoothStepEdgePath({
         sourceNode,
         sourcePortPlacement: edge.sourcePortPlacement,
         targetNode,
@@ -69,7 +73,7 @@ export default function Edge({ edge }: { edge: Edge }) {
       });
       break;
     case EdgeType.Bezier:
-      [path, , , ,] = getBezierEdgePath({
+      [path, labelX, labelY] = getBezierEdgePath({
         source: sourcePortPosition,
         target: targetPortPosition,
         sourcePlacement: edge.sourcePortPlacement,
@@ -77,7 +81,10 @@ export default function Edge({ edge }: { edge: Edge }) {
       });
       break;
     default:
-      path = getStraightEdgePath(sourcePortPosition, targetPortPosition);
+      [path, labelX, labelY] = getStraightEdgePath(
+        sourcePortPosition,
+        targetPortPosition
+      );
   }
 
   const handleEdgeClick = (e: React.MouseEvent<SVGPathElement>) => {
@@ -107,6 +114,7 @@ export default function Edge({ edge }: { edge: Edge }) {
           className={cn(styles.path, toolbarPosition && styles.highlighted)}
           d={path}
         />
+        <circle className={styles.labelCircle} cx={labelX} cy={labelY} r="5" />
       </svg>
     </>
   );

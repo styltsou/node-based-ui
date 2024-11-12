@@ -1,5 +1,7 @@
 import { Point, Node, PortPlacement } from '../../types';
+
 import { getOrthogonalRoute } from './orthogonal-routing';
+import getLabelPosition from './orthogonal-routing/get-label-position';
 
 export const CURVATURE_FACTOR = 15;
 
@@ -62,7 +64,7 @@ export default function getSmoothstepEdgePath({
   sourcePortPlacement: PortPlacement;
   targetNode: Node;
   targetPortPlacement: PortPlacement;
-}): string {
+}): [path: string, labelX: number, labelY: number] {
   // / Calculate the corner radius based on the minimum node dimension
   const cornerRadius =
     Math.min(
@@ -79,5 +81,8 @@ export default function getSmoothstepEdgePath({
     targetPortPlacement,
   });
 
-  return pathToSmoothSvg(points, cornerRadius);
+  const labelPosition = getLabelPosition(points);
+  const path = pathToSmoothSvg(points, cornerRadius);
+
+  return [path, labelPosition.x, labelPosition.y];
 }

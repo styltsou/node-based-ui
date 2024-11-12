@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IconX } from '@tabler/icons-react';
 
 import styles from './styles.module.scss';
+import Portal from '../Portal';
 import { useKeybindings } from '../../../hooks/use-keybindings';
 import cn from '../../../utils/cn';
 import { keyboardKeys } from '../../../constants';
@@ -66,33 +67,35 @@ export default function Modal({
   }, [id, isOpen, onOpen, onClose]);
 
   return (
-    <AnimatePresence>
-      {isOpen(id) && (
-        <motion.div className={styles.wrapper}>
-          <motion.div
-            onClick={handleCloseModal}
-            className={styles.overlay}
-            variants={overlayVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={transition}
-          />
-          <motion.div
-            className={cn(className, styles.modal, styles[position])}
-            variants={modalVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={transition}
-          >
-            <button onClick={handleCloseModal} className={styles.closeButton}>
-              <IconX stroke={1.5} size={18} />
-            </button>
-            {children}
+    <Portal containerId={id}>
+      <AnimatePresence>
+        {isOpen(id) && (
+          <motion.div className={styles.wrapper}>
+            <motion.div
+              onClick={handleCloseModal}
+              className={styles.overlay}
+              variants={overlayVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={transition}
+            />
+            <motion.div
+              className={cn(className, styles.modal, styles[position])}
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={transition}
+            >
+              <button onClick={handleCloseModal} className={styles.closeButton}>
+                <IconX stroke={1.5} size={18} />
+              </button>
+              {children}
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </Portal>
   );
 }

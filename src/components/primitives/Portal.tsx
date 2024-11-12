@@ -1,43 +1,41 @@
-// TODO: Probably does not  work and is not used somewhere yet, i think
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
-import React, { useState, ReactNode } from 'react';
-import ReactDOM from 'react-dom';
+interface PortalProps {
+  children: React.ReactNode;
+  containerId?: string;
+}
 
-const Portal = ({ id, children }: { id: string; children: ReactNode }) => {
-  const [hostElement, setHostElement] = useState<HTMLElement | null>(null);
+export default function Portal({
+  children,
+  containerId = 'portal-root',
+}: PortalProps) {
+  const [mounted, setMounted] = useState(false);
 
-  React.useEffect(() => {
-    const elm: HTMLElement | null = id
-      ? document.querySelector(`#${id}`)
-      : document.createElement('div');
+  useEffect(() => {
+    setMounted(true);
 
-    if (!elm) {
-      return;
-    }
-
-    setHostElement(elm);
-
-    if (!id) {
-      document.body.appendChild(elm);
+    // Check if container exists, if not create it
+    let portalContainer = document.getElementById(containerId);
+    if (!portalContainer) {
+      portalContainer = document.createElement('div');
+      portalContainer.setAttribute('id', containerId);
+      document.body.appendChild(portalContainer);
     }
 
     return () => {
-      if (!id) {
-        // In development, this error often masks other errors when a
-        // hot reload occurs. We can safely ignore this.
-        try {
-          document.body.removeChild(elm);
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
-        } catch (err: unknown) {}
+      // Cleanup: remove container if empty and we created it
+      const container = document.getElementById(containerId);
+      if (container && container.childNodes.length === 0) {
+        document.body.removeChild(container);
       }
     };
-  }, [id]);
+  }, [containerId]);
 
-  if (!hostElement) {
-    return null;
-  }
+  if (!mounted) return null;
 
-  return ReactDOM.createPortal(children, hostElement);
-};
+  const container = document.getElementById(containerId);
+  if (!container) return null;
 
-export default Portal;
+  return createPortal(children, container);
+}

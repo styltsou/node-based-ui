@@ -17,8 +17,9 @@
   --z-index-node: 3;
   --z-index-node-dragging: 4;
   --z-index-selection-box: 5;
-  --z-index-floating-elements: 6;
-  --z-index-modal: 10;
+  --z-index-floating-elements: 90;
+  --z--index-popover: 95;
+  --z-index-modal: 100;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);

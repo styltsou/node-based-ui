@@ -16,6 +16,7 @@ import {
   MAX_ZOOM,
   MIN_NODE_HEIGHT,
   MIN_NODE_WIDTH,
+  COLORS,
 } from '../constants';
 
 // Define actions for the properties that support history
@@ -71,6 +72,7 @@ interface CanvasState {
   };
   zoom: number;
   isInteractive: boolean;
+  highlightColor: string;
 
   nodes: Node[];
   renderedNodes: Node[];
@@ -100,6 +102,7 @@ interface CanvasActions {
   zoomOut: () => void;
   resetZoom: () => void;
   toggleInteractivity: () => void;
+  setHighlightColor: (color: string) => void;
   toggleVerticalGuides: () => void;
   toggleHorizontalGuides: () => void;
   setNodes: (nodes: Node[]) => void;
@@ -123,6 +126,7 @@ interface CanvasActions {
   createNodeGroup: (nodeGroup: NodeGroup) => void;
   updateNodeGroup: (id: string, nodeGroup: NodeGroup) => void;
   breakNodeGroup: (id: string) => void;
+  toggleNodeGroupLock: (id: string) => void;
   importData: (data: z.infer<typeof ImportSchema>) => void;
   saveLocalState: () => void;
   pushToUndoStack: (action: HistoryAction) => void;
@@ -140,6 +144,7 @@ const initialState: Omit<
   position: { x: 0, y: 0 },
   zoom: 1,
   isInteractive: true,
+  highlightColor: COLORS.VIOLET,
   areVerticalGuidesActive: false,
   areHorizontalGuidesActive: false,
   nodes: [],
@@ -477,6 +482,13 @@ const useBoardStore = create<CanvasState & CanvasActions>((set, get) => ({
   breakNodeGroup: id =>
     set(state => ({
       nodeGroups: state.nodeGroups.filter(group => group.id !== id),
+    })),
+
+  toggleNodeGroupLock: id =>
+    set(state => ({
+      nodeGroups: state.nodeGroups.map(group =>
+        group.id === id ? { ...group, isLocked: !group.isLocked } : group
+      ),
     })),
 
   importData: data => {

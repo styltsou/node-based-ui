@@ -1,6 +1,6 @@
 .popoverContent {
 	position: absolute;
-	z-index: 100;
+	z-index: var(--z-index-popover);
 	background-color: var(--color-node-toolbar);
 	border-radius: 0.4rem;
 	padding: 0.2rem;
@@ -31,19 +31,6 @@
 		&:last-child {
 			border-radius: 0rem 0rem 0.3rem 0.3rem;
 		}
-	}
-
-	&[data-position='top'] {
-		bottom: 0;
-	}
-
-	&[data-position='left'] {
-		top: 0;
-		right: 0;
-	}
-
-	&[data-position='right'] {
-		top: 0;
 	}
 
 	// Triangle indicator

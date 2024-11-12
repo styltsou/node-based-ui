@@ -4,25 +4,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { NodeGroup } from '../../types';
 import { ContextMenuContext, MenuItem } from '../primitives/context-menu';
 import useBoardStore from '../../store';
-import { COLORS } from '../../constants';
-
-// ! Just to test different colors
-const getRandomGroupColor = () => {
-  const colors = [
-    '#00AAFF', // Electric Blue
-    '#00FF88', // Spring Green
-    '#FF3399', // Hot Pink
-    '#FF9933', // Bright Orange
-    '#FFDD00', // Electric Yellow
-    COLORS.VIOLET,
-  ];
-
-  return colors[Math.floor(Math.random() * colors.length)];
-};
 
 export default function MenuContent() {
   const { close } = useContext(ContextMenuContext);
 
+  const highlightColor = useBoardStore(s => s.highlightColor);
   const selectedNodeIds = useBoardStore(s => s.selectedNodeIds);
   const nodes = useBoardStore(s => s.nodes);
   const setNodes = useBoardStore(s => s.setNodes);
@@ -55,7 +41,7 @@ export default function MenuContent() {
     const nodeGroup: NodeGroup = {
       id: uuidv4(),
       label: 'New group',
-      color: getRandomGroupColor(),
+      color: highlightColor,
       position: { x: 0, y: 0 },
       size: { width: 0, height: 0 },
       nodeIds: selectedNodeIds,
@@ -105,6 +91,7 @@ export default function MenuContent() {
       >
         Group nodes
       </MenuItem>
+      <MenuItem>Copy selection</MenuItem>
       <MenuItem onClick={handleLockNodes} disabled={areAllNodesLocked}>
         Lock nodes
       </MenuItem>
