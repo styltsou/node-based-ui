@@ -1,5 +1,7 @@
 Desktop UI Experiment
 
+[Check the project here](https://styltsou.vercel.app)
+
 A personal website experiment where I wanted to see if I could build a UI that acts like a desktop operating system (loosely inspired by PostHog's interface). It's not completely finished, but the basic window management and a few apps are working.
 What's in here
 Window Management
