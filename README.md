@@ -1,50 +1,46 @@
-# React + TypeScript + Vite
+Desktop UI Experiment
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personal website experiment where I wanted to see if I could build a UI that acts like a desktop operating system (loosely inspired by PostHog's interface). It's not completely finished, but the basic window management and a few apps are working.
+What's in here
+Window Management
 
-Currently, two official plugins are available:
+    Windows can be minimized, split, and resized.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+    Works sort of like a basic desktop environment in the browser.
 
-## Expanding the ESLint configuration
+The Music Player
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+Instead of just hardcoding a playlist, this app tries to automate it:
 
-- Configure the top-level `parserOptions` property like this:
+    Grabs my top recent tracks from the Spotify API.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+    Searches YouTube for each song and pulls the top 5 results.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+    Runs the titles through a basic keyword heuristic to filter out things like live versions, covers, or reaction videos to find the actual song.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+    Keeps the top 10 best matches and plays them through a hidden YouTube embed controlled via the player API.
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+Piano App
+
+    A basic virtual piano.
+
+    Uses the Web MIDI API, you can play it through the site.
+
+Snake
+
+    Just the classic snake game running inside one of the windows.
+
+How the music filtering works
+
+It's a pretty simple pipeline to keep the playlist clean without manual updating:
+
+[Spotify API] -> Gets my recent tracks
+       │
+       ▼
+[YouTube Search] -> Grabs top 5 results per song
+       │
+       ▼
+[Keyword Heuristic] -> Filters out "live", "cover", "reaction", etc.
+       │
+       ▼
+[Hidden YT Embed] -> Plays the top 10 cleaned results
